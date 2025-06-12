@@ -378,9 +378,12 @@ def add_subject():
             # Insert new subject into the database
             data = {'nama_subjek': nama_subjek}
             df = pd.DataFrame([data])
-            db.insert_into_table(table_name='subjek', df=df)
+            exists = db.insert_into_table(table_name='subjek', df=df)
 
-            flash(f"Subject '{nama_subjek}' added successfully.", "success")
+            if exists:
+                flash(f"Matapelajaran '{nama_subjek}' telah wujud!", "warning")
+            else:
+                flash(f"Matapelajaran '{nama_subjek}' berjaya ditambah.", "success")
 
         query_subject = 'SELECT * FROM subjek'
         subjects = db.query_data(query_subject)
@@ -534,6 +537,30 @@ def keputusan_matapelajaran():
 def details_peperiksaan(id):
     with sql_offsprings() as db:
         if request.method=="POST":
+            print(id)
+
+
+            sql_persekolahan = f"SELECT id_persekolahan FROM keputusan_peperiksaan WHERE id_peperiksaan = {id}"
+            id_persekolahan = db.query_data(sql_query=sql_persekolahan)
+            id_persekolahan = id_persekolahan.loc[0, 'id_persekolahan']
+            id_peperiksaan = id
+            id_subjek_list = request.form.getlist('id_subjek[]')
+            markah_list = request.form.getlist('markah[]')
+            gred_list = request.form.getlist('gred[]')
+
+            print(id_persekolahan, id_peperiksaan, id_subjek_list, markah_list, gred_list)
+
+            for id_subjek, markah, gred in zip(id_subjek_list, markah_list, gred_list):
+                keputusan_matapelajaran = {
+                    'id_persekolahan': id_persekolahan,
+                    'id_peperiksaan': id_peperiksaan,
+                    'id_subjek': id_subjek.strip(),
+                    'markah': markah.strip(),
+                    'gred': gred.strip()
+                }
+                df_keputusan_matapelajaran = pd.DataFrame([keputusan_matapelajaran])
+                print(df_keputusan_matapelajaran)
+                db.insert_keputusan_matapelajaran(df_keputusan_matapelajaran)
 
         sql_details =f'''
             SELECT 

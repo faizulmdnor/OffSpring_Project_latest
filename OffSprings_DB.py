@@ -119,8 +119,6 @@ class sql_offsprings:
                     logger.info(f"Insert data {tuple(row)} into {table_name}: Success!")
                 else:
                     logger.info(f"Data {tuple(row)}: Exists!")
-                    any_exists = True
-                    return any_exists
         except pyodbc.Error as e:
             self.conn.rollback()
             logger.error(f"Insert Error: {e}")

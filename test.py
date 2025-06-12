@@ -1,8 +1,22 @@
 from OffSprings_DB import sql_offsprings
-id = 20012
+id_person = 101011
+id_kelas = 255
 with sql_offsprings() as db:
-    sql_persekolahan = f"SELECT id_persekolahan FROM keputusan_peperiksaan WHERE id_peperiksaan = {id}"
-    id_persekolahan = db.query_data(sql_query=sql_persekolahan)
-    id_persekolahan = id_persekolahan.loc[0,'id_persekolahan']
+    sql_persekolahan = '''
+        SELECT id_persekolahan
+        FROM persekolahan
+        WHERE id_person = ?
+        AND id_kelas  = ?
+    '''
 
-    print(id_persekolahan)
+    values = {
+        'id_person': id_person,
+        'id_kelas': id_kelas
+    }
+    result = db.query_offsprings(sql_query=sql_persekolahan, values=values)
+    if result:
+        id_persekolahan = result[0][0]
+        print(id_persekolahan)
+    else:
+        print("No data found")
+

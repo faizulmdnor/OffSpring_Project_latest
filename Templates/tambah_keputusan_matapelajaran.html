@@ -27,11 +27,6 @@
                 alert("Sekurang-kurangnya satu matapelajaran diperlukan.");
             }
         }
-        function checkAddSubject(select) {
-             if (select.value === "__add__") {
-                      window.location.href = "{{ url_for('add_subject') }}";
-                      }
-        }
     </script>
 </head>
 <body>
@@ -81,12 +76,11 @@
             <tbody id="subjek-container">
                 <tr>
                     <td>
-                        <select name="id_subjek[]" class="form-control" required onchange="checkAddSubject(this)">
+                        <select name="id_subjek[]" class="form-control" required>
                             <option value="" disabled selected>Sila pilih</option>
                             {% for subjek in data_subjek %}
                             <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
                             {% endfor %}
-                            <option value="__add__">Tambah matapelajaran</option>
                         </select>
                     </td>
                     <td>

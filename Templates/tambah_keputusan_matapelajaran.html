@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Peperiksaan - Keputusan Matapelajaran</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function tambahBaris() {
+            const container = document.getElementById('subjek-container');
+            const firstRow = container.querySelector('tr');
+            const clone = firstRow.cloneNode(true);
+
+            // Reset nilai input & select dalam baris klon
+            clone.querySelectorAll('input').forEach(input => input.value = '');
+            clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+            container.appendChild(clone);
+        }
+
+        function padamBaris(button) {
+            const container = document.getElementById('subjek-container');
+            const row = button.closest('tr');
+
+            if (container.children.length > 1) {
+                container.removeChild(row);
+            } else {
+                alert("Sekurang-kurangnya satu matapelajaran diperlukan.");
+            }
+        }
+    </script>
+</head>
+<body>
+{% extends "layout.html" %}
+{% block title %}Keputusan Peperiksaan{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Tambah Keputusan Peperiksaan</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Pilih Peperiksaan:</label>
+            <select name="id_peperiksaan" class="form-control" required>
+                <option value="" disabled selected>Sila pilih</option>
+                {% for peperiksaan in data_peperiksaan %}
+                <option value="{{ peperiksaan.id_peperiksaan }}">
+                    {{ peperiksaan.tarikh_peperiksaan }}: {{ peperiksaan.nama_peperiksaan }}.
+                    Nama: {{ peperiksaan.full_name }}, Kelas: {{ peperiksaan.nama_kelas }}
+                </option>
+                {% endfor %}
+            </select>
+            <div>
+                <label>Pilih kelas:</label>
+                <select name="id_persekolahan" class="form-control" required>
+                    <option value="" disabled selected>Sila pilih</option>
+                    {% for persekolahan in data_persekolahan %}
+                    <option value="{{ persekolahan.id_persekolahan }}">{{ persekolahan.full_name }}: {{ persekolahan.nama_kelas }}-{{ persekolahan.tahun_persekolahan }}:
+                        {{ persekolahan.nama_sekolah }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+            </div>
+            <div>
+                <a href="{{ url_for('add_peperiksaan') }}" class="btn btn-primary mt-2">Tambah Peperiksaan</a>
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Matapelajaran</th>
+                    <th>Markah</th>
+                    <th>Gred</th>
+                    <th>Tindakan</th>
+                </tr>
+            </thead>
+            <tbody id="subjek-container">
+                <tr>
+                    <td>
+                        <select name="id_subjek[]" class="form-control" required>
+                            <option value="" disabled selected>Sila pilih</option>
+                            {% for subjek in data_subjek %}
+                            <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="markah[]" class="form-control" placeholder="Markah" min="0" max="100" required>
+                    </td>
+                    <td>
+                        <input type="text" name="gred[]" class="form-control" placeholder="Gred" required>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="padamBaris(this)">Padam</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <button type="button" class="btn btn-secondary" onclick="tambahBaris()">Tambah Keputusan Subjek</button>
+        </div>
+
+        <div class="form-group mt-4">
+            <button type="submit" class="btn btn-primary">Hantar</button>
+            <button type="button" class="btn btn-secondary" onclick="history.back()">Kembali</button>
+            <a href="{{ url_for('peperiksaan') }}" class="btn btn-secondary">Batal</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+</body>
+</html>

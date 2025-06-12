@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Keputusan</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Edit Keputusan{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <form method="post">
+        <div class="form-group">
+            <label for="markah">Markah</label>
+            <input type="number" class="form-control" name="markah" value="{{ keputusan[0]['markah'] }}">
+        </div>
+        <div class="form-group">
+            <label for="gred">Gred</label>
+            <input type="text" class="form-control" name="gred" value="{{ keputusan[0]['gred'] }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+        <a href="{{ url_for('details_peperiksaan', id=id_peperiksaan) }}" class="btn btn-secondary">Kembali</a>
+    </form>
+</div>
+{% endblock %}
+</body>
+</html>

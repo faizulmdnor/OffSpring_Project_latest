@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Peperiksaan</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Tambah Peperiksaan</h2>
+    <a href="{{ url_for('add_peperiksaan') }}" class="btn btn-primary mt-2">Tambah Peperiksaan</a>
+</div>
+
+<div class="container mt-4">
+    <h2>Keputusan peperiksaan - matapelajaran.</h2>
+    <a href="{{ url_for('keputusan_matapelajaran') }}" class="btn btn-primary mt-2">Keputusan matapelajaran</a>
+</div>
+
+<div class="container mt-4">
+    <h2>Keputusan peperiksaan.</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Tahun</th>
+            <th>Nama</th>
+            <th>Nama peperiksaan</th>
+            <th>Tarikh peperiksaan</th>
+            <th>Bil. Matapelajaran</th>
+            <th>Jumlah Skor</th>
+            <th>Purata Markah</th>
+            <th>Peratus Skor</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in data_peperiksaan %}
+        <tr>
+            <td>{{ loop.index if loop else index }}</td>
+            <td>{{ row.tahun_persekolahan }}</td>
+            <td>{{ row.full_name }}</td>
+            <td>{{ row.nama_peperiksaan }}</td>
+            <td>{{ row.tarikh_peperiksaan }}</td>
+            <td>{{ row.Bil_Subjek }}</td>
+            <td>{{ row.Jumlah_Score }}</td>
+            <td>{{ row.Purata_Markah }}</td>
+            <td>{{ row.Peratus_Skor | round(2) }}</td>
+            <td>
+                <a href="{{ url_for('details_peperiksaan', id=row.id_peperiksaan ) }} " class="btn btn-primary m-2">Edit</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+</body>
+</html>

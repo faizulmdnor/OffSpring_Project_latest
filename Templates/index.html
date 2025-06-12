@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List of OffSprings</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>OffSprings - Faizul & Reen</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Nama</th>
+            <th>Kad Pengenalan</th>
+            <th>Sijil Kelahiran</th>
+            <th>Jantina</th>
+            <th>Email Sekolah/Kerja</th>
+            <th>Email Peribadi</th>
+            <th>Nombor Telefon</th>
+            <th>Kategori</th>
+            <th>Edit</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    <td>{{ loop.index if loop else index }}</td>
+                    <td>{{ row.full_name }}</td>
+                    <td>{{ row.kad_pengenalan }}</td>
+                    <td>{{ row.sijil_kelahiran }}</td>
+                    <td>{{ row.gender }}</td>
+                    <td>{{ row.email_school_work }}</td>
+                    <td>{{ row.email_personal }}</td>
+                    <td>{{ row.phone_number }}</td>
+                    <td>{{ row.category }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_offsprings', id=row.id_person) }}" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+</body>
+</html>

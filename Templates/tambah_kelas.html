@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah maklumat sekolah</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Butiran kelas:</h2>
+    <form method="POST">
+    <div class="form-group">
+        <label>Kategori kelas</label>
+        <select name="id_cat_kelas" class="form-control" required>
+            <option value="" disabled selected>Sila pilih</option>
+            {% for cat in cat_kelas %}
+            <option value="{{ cat.id_cat_kelas }}" {% if cat.id_cat_kelas == data.id_cat_kelas %}selected{% endif %}>
+                {{ cat.cat_kelas }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Nama kelas:</label>
+        <input type="text" name="nama_kelas" value="{{ data.nama_kelas }}" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Nama guru</label>
+        <select name="id_guru" class="form-control" required>
+            <option value="" disabled selected>Sila pilih</option>
+            {% for guru in data_guru %}
+            <option value="{{ guru.id_guru }}" {% if guru.id_guru == data.id_guru %}selected{% endif %}>
+                {{ guru.nama_guru }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+        <div class="form-group">
+            <label>Sekolah</label>
+            <select name="id_sekolah" class="form-control" required>
+                <option value="" disabled selected>Sila pilih</option>
+                {% for sekolah in data_sekolah %}
+                <option value="{{ sekolah.id_sekolah }}" {% if sekolah.id_sekolah == data.id_sekolah %}selected{% endif %}>
+                    {{ sekolah.nama_sekolah }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group d-flex gap-2 mt-3">
+            <a href="{{ url_for('insert_guru') }}" class="btn btn-warning">Tambah maklumat guru</a>
+            <a href="{{ url_for('insert_sekolah') }}" class="btn btn-warning">Tambah maklumat sekolah</a>
+        </div>
+        <div class="form-group d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+        <div class="form-group d-flex gap-2 mt-3">
+            <a href="{{ url_for('persekolahan') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+
+</div>
+<div class="container mt-4">
+    <h4>Senarai kelas</h4>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Kategori</th>
+            <th>Nama kelas</th>
+            <th>Nama guru</th>
+            <th>Sekolah</th>
+            <th>Edit</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in inserted_kelas %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ row['cat_kelas'] }}</td>
+            <td>{{ row['nama_kelas'] }}</td>
+            <td>{{ row['nama_guru'] }}</td>
+            <td>{{ row['nama_sekolah'] }}</td>
+            <td><a href="{{ url_for('edit_kelas', id=row.id_kelas) }}" class="btn btn-warning btn-sm">Edit</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+</body>
+</html>

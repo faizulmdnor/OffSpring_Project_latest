@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Persekolahan anak-anak</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Details persekolahan anak-anak.</h2>
+
+    <form method="POST">
+    <div class="form-group">
+        <label>Tahun</label>
+        <input type="text" name="tahun_persekolahan" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label>Nama:</label>
+        <select name="id_person" class="form-control" required>
+            {% for person in persons %}
+            <option value="{{ person.id_person }}" class="form-control">
+                {{ person.full_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Kelas:</label>
+        <select name="id_kelas" class="form-control" required>
+            {% for kelas in data_kelas %}
+            <option value="{{ kelas.id_kelas }}" class="form-control">
+                {{ kelas.nama_kelas }}
+            </option>
+            {% endfor %}
+        </select>
+        <div class="container mt-3">
+            <a href="{{ url_for('insert_kelas') }}" class="btn btn-primary m-2">Tambah maklumat kelas</a>
+        </div>
+
+    </div>
+
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{{ url_for('persekolahan') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Tahun</th>
+            <th>Nama</th>
+            <th>Kelas</th>
+            <th>Nama Kelas/Darjah/Tingkatan</th>
+            <th>Nama guru</th>
+            <th>Sekolah</th>
+            <th>Edit</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in data_persekolahan %}
+        <tr>
+            <td>{{ loop.index if loop else index }}</td>
+            <td>{{ row.tahun_persekolahan }}</td>
+            <td>{{ row.full_name}}</td>
+            <td>{{ row.cat_kelas }}</td>
+            <td>{{ row.nama_kelas }}</td>
+            <td>{{ row.nama_guru }}</td>
+            <td>{{ row.nama_sekolah }}</td>
+            <td>
+                <a href="{{ url_for('edit_persekolahan', id=row.id_persekolahan) }}" class="btn btn-warning btn-sm">Edit</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}
+</body>
+</html>

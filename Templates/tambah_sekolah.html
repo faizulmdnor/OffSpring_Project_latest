@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah maklumat sekolah</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Butiran Sekolah:</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>Nama Sekolah:</label>
+            <input type="text" name="nama_sekolah" value="{{ data.nama_sekolah }}" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Alamat Sekolah (line 1):</label>
+            <input type="text" name="alamat_sekolah_line1" value="{{ data.alamat_sekolah_line1 }}" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Alamat Sekolah (line 2):</label>
+            <input type="text" name="alamat_sekolah_line2" value="{{ data.alamat_sekolah_line2 }}" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Alamat Sekolah (line 3):</label>
+            <input type="text" name="alamat_sekolah_line3" value="{{ data.alamat_sekolah_line3 }}" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Telefon Sekolah:</label>
+            <input type="text" name="telefon_sekolah" value="{{ data.telefon_sekolah }}" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="{{ url_for('persekolahan') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+<div class="container mt-4">
+    <h4>Senarai sekolah</h4>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Nama sekolah</th>
+            <th>Alamat sekolah (line 1)</th>
+            <th>Alamat sekolah (line 2)</th>
+            <th>Alamat sekolah (line 3)</th>
+            <th>Telefon sekolah</th>
+            <th>Edit</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in inserted_sekolah %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ row['nama_sekolah'] }}</td>
+            <td>{{ row['alamat_sekolah_line1'] }}</td>
+            <td>{{ row['alamat_sekolah_line2'] }}</td>
+            <td>{{ row['alamat_sekolah_line3'] }}</td>
+            <td>{{ row['telefon_sekolah'] }}</td>
+            <td>
+                <a href="{{ url_for('edit_sekolah', id=row.id_sekolah) }}" class="btn btn-warning btn-sm">Edit</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="container mt-3">
+    <a href="{{ url_for('insert_guru') }}" class="btn btn-primary m-2">Tambah maklumat guru</a>
+</div>
+{% endblock %}
+</body>
+</html>

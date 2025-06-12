@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah Matapelajaran.</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+{% extends "layout.html" %}
+
+{% block title %}Job Logs{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Tambah matapelajaran:</h2>
+    <div class="container mt-4">
+        <form method="POST">
+            <div class="form-group">
+                <label>Matapelajaran:</label>
+                <input type="text" name="subject" value="" class="form-group" required>
+            </div>
+            <div class="container mt-2">
+                <button type="submit" class="btn btn-primary gap-5">Tambah</button>
+                <button class="btn btn-secondary gap-5" onclick="history.back()">Back</button>
+                <a href="{{ url_for('peperiksaan') }}" class="btn btn-secondary gap-5">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Matapelajaran</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for subject in subjects %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ subject.nama_subjek}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+</body>
+</html>

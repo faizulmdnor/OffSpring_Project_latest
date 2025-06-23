@@ -248,6 +248,23 @@ class sql_offsprings:
             self.conn.rollback()
             logger.error(f'Fail to delete: {e}')
 
+    def delete_subjek_peperiksaan(self, id_peperiksaan, id_subjek_peperiksaan):
+        sql_delete_subjek_peperiksaan = """
+                DELETE FROM subjek_peperiksaan
+                WHERE id_peperiksaan = ?
+                AND id_subjek_peperiksaan = ?  
+            """
+        values = (id_peperiksaan, id_subjek_peperiksaan)
+        try:
+            self.cursor.execute(sql_delete_subjek_peperiksaan, values)
+            self.conn.commit()
+            logger.info(f"Delete success {id_subjek_peperiksaan}")
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Delete failed: {e}")
+            return False
+
     def update_sekolah(self, update_sekolah: dict):
 
         sql_update_sekolah = '''
@@ -329,20 +346,31 @@ class sql_offsprings:
     def update_keputusan(self, update: dict):
         sql_update_keputusan = '''
             UPDATE keputusan_peperiksaan
-            SET markah = ?, gred = ?
-            WHERE id_keputusan = ? 
+            SET markah = ?, 
+                gred = ?, 
+                tahap_penguasaan = ?
+            WHERE id_peperiksaan= ? AND id_keputusan_peperiksaan = ? 
         '''
-        values = (update['markah'],
-                  update['gred'],
-                  update['id_keputusan'])
+        values = (
+            update['markah'],
+            update['gred'],
+            update['tahap_penguasaan'],
+            update['id_peperiksaan'],
+            update['id_keputusan_peperiksaan']
+        )
+
         try:
-            logger.info(f"Updating keputusan, id = {update['id_keputusan']}")
+            logger.info(f"Updating keputusan, id = {update['id_keputusan_peperiksaan']}")
             self.cursor.execute(sql_update_keputusan, values)
             self.conn.commit()
             logger.info("update successfully.")
+            return True
+
         except Exception as e:
             self.conn.rollback()
-            logger.warning(f'Update keputusan id: {update['id_keputusan']} failed. error: {e}')
+            logger.warning(f'Update keputusan id: {update['id_keputusan_peperiksaan']} failed. error: {e}')
+            return False
+
 
     def query_offsprings(self, sql_query, values: dict):
         try:
@@ -353,3 +381,133 @@ class sql_offsprings:
             logger.error(f"query failed: {sql_query, values} \n{e}")
             return None
 
+    def insert_subjek_peperiksaan(self, df: pd.DataFrame):
+        columns = ', '.join(df.columns)
+        placeholder = ', '.join('?'*len(df.columns))
+        columns_check = ' AND '.join([f'{col}=?' for col in df.columns])
+        sql_check = f'''
+            SELECT COUNT(*)
+            FROM subjek_peperiksaan
+            WHERE {columns_check}   
+        '''
+        sql_insert = f'''
+            INSERT INTO subjek_peperiksaan ({columns}) VALUES ({placeholder})
+        '''
+
+        try:
+            for index, row in df.iterrows():
+                self.cursor.execute(sql_check, tuple(row))
+                exists = self.cursor.fetchone() [0] > 0
+                if not exists:
+                    self.cursor.execute(sql_insert, tuple(row))
+                    self.conn.commit()
+                    logger.info(f'Insert data {tuple(row)} into table subjek_peperiksaan: Success!')
+                else:
+                    logger.info(f"Data {tuple(row)}: Exists")
+        except pyodbc.Error as e:
+            self.conn.rollback()
+            logger.error(f'Insert Error: {e}')
+
+    def insert_result_exam(self, result: pd.DataFrame):
+        columns = ', '.join(result.columns)
+        placeholder = ', '.join('?'*len(result.columns))
+        columns_check = ' AND '.join([f'{col}=?' for col in result.columns])
+        sql_check = f"""
+                SELECT COUNT(*)
+                FROM keputusan_peperiksaan
+                WHERE {columns_check}  
+            """
+        sql_result_insert = f"""
+                INSERT INTO keputusan_peperiksaan ({columns}) VALUES ({placeholder})
+            """
+
+        try:
+            for index, row in result.iterrows():
+                self.cursor.execute(sql_check, tuple(row))
+                exists = self.cursor.fetchone() [0] > 0
+                if not exists:
+                    self.cursor.execute(sql_result_insert, tuple(row))
+                    self.conn.commit()
+
+                    logger.info(f"Insert data {tuple(row)} into table keputusan_peperiksaan: success!")
+                    return True
+                else:
+                    logger.info(f"Data {tuple(row)}: Exists.")
+                    return False
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Insert error: {e}")
+            return False
+
+    def query_one(self, query, params=None):
+        cursor = self.conn.cursor()
+        cursor.execute(query, params or [])
+        row = cursor.fetchone()
+        if row:
+            columns = [column[0] for column in cursor.description]
+            return dict(zip(columns, row))
+        return None
+
+    def get_exam_result_by_ids(self, id_peperiksaan, id_subjek_peperiksaan):
+        query = """
+            SELECT *
+            FROM vw_keputusan_peperiksaan
+            WHERE id_peperiksaan = ? AND id_subjek_peperiksaan = ?
+        """
+        return self.query_one(query, (id_peperiksaan, id_subjek_peperiksaan))
+
+    def get_exam_result_by_ids1(self, id_peperiksaan, id_keputusan_peperiksaan):
+        query = """
+            SELECT *
+            FROM vw_keputusan_peperiksaan
+            WHERE id_peperiksaan = ? AND id_subjek_peperiksaan = ?
+        """
+        return self.query_one(query, (id_peperiksaan, id_keputusan_peperiksaan))
+
+    def delete_exam_result(self, id_peperiksaan, id_keputusan_peperiksaan):
+        sql_delete = """
+            DELETE FROM keputusan_peperiksaan
+            WHERE id_peperiksaan = ? 
+            AND id_keputusan_peperiksaan = ?
+        """
+
+        try:
+            self.cursor.execute(sql_delete, (id_peperiksaan, id_keputusan_peperiksaan))
+            self.conn.commit()
+            logger.info(f'Delete successfully for id {id_keputusan_peperiksaan}.')
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f'Fail to delete: {e}')
+            return False
+
+    def insert_into_comment(self, df: pd.DataFrame):
+        columns = ', '.join(df.columns)
+        placeholder = ', '.join('?' * len(df.columns))
+        columns_check = ' AND '.join([f"{col}=?" for col in df.columns])
+
+        sql_check = f'''
+            SELECT COUNT(*)
+            FROM komen_keputusan
+            WHERE {columns_check}
+        '''
+        sql_insert = f'''
+            INSERT INTO komen_keputusan ({columns}) VALUES ({placeholder})
+        '''
+
+        try:
+            for index, row in df.iterrows():
+                self.cursor.execute(sql_check, tuple(row))
+                exists = self.cursor.fetchone()[0] > 0
+                if not exists:
+                    self.cursor.execute(sql_insert, tuple(row))
+                    self.conn.commit()
+                    logger.info(f"Insert data {tuple(row)} into komen_keputusan: Success!")
+                    return True
+                else:
+                    logger.info(f"Data {tuple(row)}: Exists!")
+                    return False
+        except pyodbc.Error as e:
+            self.conn.rollback()
+            logger.error(f"Insert Error: {e}")
+            return False

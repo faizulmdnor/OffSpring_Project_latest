@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Padam Keputusan{% endblock %}
+{% block content %}
+
+{% if details %}
+<div class="container mt-4">
+  <h2 class="text-danger mb-4">⚠️ Padam Keputusan Peperiksaan</h2>
+
+  <!-- Maklumat Pelajar -->
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <div class="card shadow-sm border-left-danger">
+        <div class="card-body">
+          <h5 class="card-title text-primary">Maklumat Pelajar</h5>
+          <p><strong>Peperiksaan:</strong> {{ details[0].nama_peperiksaan }}</p>
+          <p><strong>ID Peperiksaan:</strong> {{ details[0].id_peperiksaan }}</p>
+          <p><strong>Kelas:</strong> {{ details[0].nama_kelas }}</p>
+          <p><strong>Nama:</strong> {{ details[0].full_name }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Borang Pengesahan Padam -->
+  <form method="POST" class="mt-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title text-danger">Butiran Keputusan Untuk Dibuang</h5>
+
+        <div class="form-group">
+          <label><strong>ID Keputusan</strong></label>
+          <input type="number" class="form-control" name="id_keputusan_peperiksaan" value="{{ details[0].id_keputusan_peperiksaan }}" readonly>
+        </div>
+
+        <div class="form-group">
+          <label><strong>Nama Subjek</strong></label>
+          <input type="text" class="form-control" name="nama_subjek" value="{{ details[0].nama_subjek }}" readonly>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label><strong>Markah</strong></label>
+            <input type="number" class="form-control" name="markah" value="{{ details[0].markah }}" readonly>
+          </div>
+          <div class="form-group col-md-4">
+            <label><strong>Gred</strong></label>
+            <input type="text" class="form-control" name="gred" value="{{ details[0].gred }}" readonly>
+          </div>
+          <div class="form-group col-md-4">
+            <label><strong>Tahap Penguasaan (TP)</strong></label>
+            <input type="number" class="form-control" name="tahap_penguasaan" value="{{ details[0].tahap_penguasaan }}" readonly>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Ya, Padam Keputusan Ini
+          </button>
+          <a href="{{ url_for('view_results', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Batal
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% else %}
+<div class="container mt-4">
+  <div class="alert alert-warning"><strong>Tiada data ditemui!</strong></div>
+</div>
+{% endif %}
+
+{% endblock %}

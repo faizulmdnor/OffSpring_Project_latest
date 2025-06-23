@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for,flash
+import logging
+
+from flask import Flask, render_template, request, redirect, url_for, flash
 import pandas as pd
 from datetime import datetime
 from OffSprings_DB import sql_offsprings
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
+
 
 @app.route('/')
 def index():
@@ -16,17 +19,18 @@ def index():
         except Exception as e:
             return f"Error retrieving data: {e}"
 
+
 @app.route('/persekolahan', methods=['GET', "POST"])
 def persekolahan():
     with sql_offsprings() as db:
-        if request.method=='POST':
+        if request.method == 'POST':
             tahun_persekolahan = request.form['tahun_persekolahan']
             id_person = request.form['id_person']
             id_kelas = request.form['id_kelas']
 
             persekolahan_update = {
-                'id_person':id_person,
-                'id_kelas':id_kelas,
+                'id_person': id_person,
+                'id_kelas': id_kelas,
                 'tahun_persekolahan': tahun_persekolahan
             }
 
@@ -46,6 +50,7 @@ def persekolahan():
                                persons=persons.to_dict(orient='records'),
                                data_kelas=data_kelas.to_dict(orient='records')
                                )
+
 
 @app.route('/tambah_sekolah', methods=['GET', 'POST'])
 def insert_sekolah():
@@ -78,6 +83,7 @@ def insert_sekolah():
             inserted_sekolah=inserted_sekolah.to_dict(orient='records')
         )
 
+
 @app.route('/tambah_guru', methods=['GET', 'POST'])
 def insert_guru():
     with sql_offsprings() as db:
@@ -105,6 +111,7 @@ def insert_guru():
             data=data_guru,
             inserted_guru=inserted_guru.to_dict(orient='records')
         )
+
 
 @app.route('/tambah_kelas', methods=['GET', 'POST'])
 def insert_kelas():
@@ -147,6 +154,7 @@ def insert_kelas():
             data_guru=data_guru.to_dict(orient='records')
         )
 
+
 @app.route('/edit_guru/<id>', methods=['GET', 'POST'])
 def edit_guru(id):
     with sql_offsprings() as db:
@@ -166,13 +174,13 @@ def edit_guru(id):
             return redirect(url_for('insert_guru'))
         query = f"SELECT * FROM guru WHERE id_guru = {id}"
 
-
         data = db.query_data(query)
         if data.empty:
             return "Data not found:", 404
 
         return render_template('edit_guru.html',
                                data=data.iloc[0].to_dict())
+
 
 @app.route('/edit/<id>', methods=['GET', 'POST'])
 def edit_offsprings(id):
@@ -191,7 +199,7 @@ def edit_offsprings(id):
             update_data = {
                 'id_person': id_person,
                 'full_name': full_name,
-                'kad_pengenalan':kad_pengenalan,
+                'kad_pengenalan': kad_pengenalan,
                 'sijil_kelahiran': sijil_kelahiran,
                 'gender': gender,
                 'email_school_work': email_school_work,
@@ -216,9 +224,9 @@ def edit_offsprings(id):
                                kategori=kategori.to_dict(orient='records')
                                )
 
+
 @app.route('/edit_kelas/<id>', methods=['GET', 'POST'])
 def edit_kelas(id):
-
     with sql_offsprings() as db:
         if request.method == 'POST':
             id_kelas = request.form['id_kelas']
@@ -257,12 +265,14 @@ def edit_kelas(id):
                                sekolah=sekolah.to_dict(orient='records')
                                )
 
+
 @app.route('/delete_kelas/<id>', methods=['POST'])
 def delete_kelas(id):
     with sql_offsprings() as db:
         db.delete_data(table_name='kelas', id=id, key='id_kelas')
 
     return redirect(url_for('insert_kelas'))
+
 
 @app.route('/edit_sekolah/<id>', methods=['GET', 'POST'])
 def edit_sekolah(id):
@@ -276,12 +286,12 @@ def edit_sekolah(id):
             telefon_sekolah = request.form['telefon_sekolah']
 
             update_sekolah = {
-                'id_sekolah':id_sekolah,
-                'nama_sekolah':nama_sekolah,
-                'alamat_sekolah_line1':alamat_sekolah_line1,
-                'alamat_sekolah_line2':alamat_sekolah_line2,
-                'alamat_sekolah_line3':alamat_sekolah_line3,
-                'telefon_sekolah':telefon_sekolah
+                'id_sekolah': id_sekolah,
+                'nama_sekolah': nama_sekolah,
+                'alamat_sekolah_line1': alamat_sekolah_line1,
+                'alamat_sekolah_line2': alamat_sekolah_line2,
+                'alamat_sekolah_line3': alamat_sekolah_line3,
+                'telefon_sekolah': telefon_sekolah
             }
             db.update_sekolah(update_sekolah)
             return redirect(url_for('insert_sekolah'))
@@ -294,6 +304,7 @@ def edit_sekolah(id):
 
         return render_template('edit_sekolah.html', data=data.iloc[0].to_dict())
 
+
 @app.route('/delete_sekolah/<id>', methods=['POST'])
 def delete_sekolah(id):
     with sql_offsprings() as db:
@@ -301,13 +312,14 @@ def delete_sekolah(id):
 
     return redirect(url_for('insert_sekolah'))
 
+
 @app.route('/delete_guru/<id>', methods=['POST'])
 def delete_guru(id):
-
     with sql_offsprings() as db:
         db.delete_data(table_name='guru', id=id, key='id_guru')
 
     return redirect(url_for('insert_guru'))
+
 
 @app.route('/edit_persekolahan/<id>', methods=['GET', 'POST'])
 def edit_persekolahan(id):
@@ -319,8 +331,8 @@ def edit_persekolahan(id):
 
             update_persekolahan = {
                 'id_person': id_person,
-                'id_kelas':id_kelas,
-                'tahun_persekolahan':tahun_persekolahan
+                'id_kelas': id_kelas,
+                'tahun_persekolahan': tahun_persekolahan
             }
 
             db.update_persekolahan(update_persekolahan, id)
@@ -353,18 +365,32 @@ def edit_persekolahan(id):
                                data_kelas=data_kelas.to_dict(orient='records')
                                )
 
+
 @app.route('/delete_persekolahan/<id>', methods=['POST'])
 def delete_persekolahan(id):
     with sql_offsprings() as db:
         db.delete_data(table_name='persekolahan', id=id, key='id_persekolahan')
     return redirect(url_for('persekolahan'))
 
+
 @app.route('/peperiksaan', methods=['GET', 'POST'])
 def peperiksaan():
     with sql_offsprings() as db:
-        data_peperiksaan = db.query_data("SELECT * FROM vw_keputusan_peperiksaan")
-        return render_template('peperiksaan.html',
-                               data_peperiksaan=data_peperiksaan.to_dict(orient='records'))
+        sql_data_peperiksaan = f"""
+                    select a.id_peperiksaan, e.full_name, f.nama_kelas, g.nama_sekolah, a.nama_peperiksaan, a.tarikh_peperiksaan
+                    from peperiksaan a
+                    LEFT JOIN persekolahan d
+                    ON a.id_persekolahan = d.id_persekolahan
+                    LEFT JOIN person e
+                    ON d.id_person = e.id_person
+                    LEFT JOIN kelas f
+                    ON d.id_kelas = f.id_kelas
+                    LEFT JOIN sekolah g
+                    ON f.id_sekolah = g.id_sekolah
+                """
+        data_peperiksaan = db.query_data(sql_data_peperiksaan)
+
+        return render_template('peperiksaan.html', data_peperiksaan=data_peperiksaan.to_dict(orient="records"))
 
 @app.route('/add_subject', methods=['GET', 'POST'])
 def add_subject():
@@ -390,6 +416,7 @@ def add_subject():
         return render_template('add_subject.html',
                                subjects=subjects.to_dict(orient='records'))
 
+
 @app.route('/add_peperiksaan', methods=['GET', 'POST'])
 def add_peperiksaan():
     with sql_offsprings() as db:
@@ -397,27 +424,7 @@ def add_peperiksaan():
             nama_peperiksaan = request.form['nama_peperiksaan'].strip()
             tahun_peperiksaan = request.form['tahun_peperiksaan'].strip()
             tarikh_peperiksaan = request.form['tarikh_peperiksaan'].strip()
-            id_person = request.form['id_person']
-            id_kelas = request.form['id_kelas']
-
-            sql_persekolahan = '''
-                    SELECT id_persekolahan
-                    FROM persekolahan
-                    WHERE id_person = ?
-                    AND id_kelas  = ?
-                '''
-
-            values = {
-                'id_person': id_person,
-                'id_kelas': id_kelas
-            }
-            result = db.query_offsprings(sql_query=sql_persekolahan, values=values)
-            if result:
-                id_persekolahan = result[0][0]
-
-            else:
-                print("No data found")
-
+            id_persekolahan = request.form['id_persekolahan'].strip()
 
             if not nama_peperiksaan or not tahun_peperiksaan or not tarikh_peperiksaan:
                 flash("Please fill all fields.", "danger")
@@ -439,19 +446,35 @@ def add_peperiksaan():
             except ValueError:
                 flash("Invalid date format. Please use YYYY-MM-DD.", "danger")
                 return redirect(url_for('add_peperiksaan'))
-        query_peperiksaan = 'SELECT * FROM peperiksaan'
+        query_peperiksaan = """
+                                SELECT a.id_peperiksaan, a.nama_peperiksaan, a.tarikh_peperiksaan, a.tahun_peperiksaan, c.full_name, d.nama_kelas, e.nama_sekolah
+                                FROM peperiksaan a
+                                LEFT JOIN persekolahan b
+                                ON a.id_persekolahan = b.id_persekolahan
+                                LEFT JOIN person c
+                                ON b.id_person = c.id_person
+                                LEFT JOIN kelas d
+                                ON b.id_kelas = d.id_kelas
+                                LEFT JOIN sekolah e
+                                ON d.id_sekolah = e.id_sekolah
+                            """
         data_exam = db.query_data(query_peperiksaan)
 
-        sql_kelas = 'SELECT id_kelas, nama_kelas FROM kelas'
-        nama_kelas = db.query_data(sql_kelas)
-
-        sql_person = 'select id_person, full_name from person'
-        persons = db.query_data(sql_person)
+        sql_details_person = """select a.id_persekolahan, a.tahun_persekolahan, b.full_name, c.nama_kelas, d.nama_sekolah
+                            from persekolahan a
+                            LEFT JOIN person b
+                            ON a.id_person = b.id_person
+                            LEFT JOIN kelas c
+                            ON a.id_kelas = c.id_kelas
+                            LEFT JOIN sekolah d
+                            ON d.id_sekolah = c.id_sekolah
+                        """
+        details_person = db.query_data(sql_details_person)
 
         return render_template('add_peperiksaan.html',
                                exams=data_exam.to_dict(orient='records'),
-                               list_kelas=nama_kelas.to_dict(orient='records'),
-                               persons=persons.to_dict(orient='records'))
+                               details_person=details_person.to_dict(orient="records"))
+
 
 @app.route('/edit_peperiksaan/<int:id>', methods=['GET', 'POST'])
 def edit_peperiksaan(id):
@@ -462,9 +485,9 @@ def edit_peperiksaan(id):
             tarikh_peperiksaan = request.form['tarikh_peperiksaan'].strip()
             tarikh_peperiksaan = datetime.strptime(tarikh_peperiksaan, '%Y-%m-%d').strftime('%Y-%m-%d')
             update_peperiksaan = {
-                'nama_peperiksaan':nama_peperiksaan,
-                'tahun_peperiksaan':tahun_peperiksaan,
-                'tarikh_peperiksaan':tarikh_peperiksaan,
+                'nama_peperiksaan': nama_peperiksaan,
+                'tahun_peperiksaan': tahun_peperiksaan,
+                'tarikh_peperiksaan': tarikh_peperiksaan,
                 'id_peperiksaan': id
             }
             db.update_table_peperiksaan(update_peperiksaan)
@@ -488,142 +511,209 @@ def delete_peperiksaan(id):
         db.delete_data(table_name='peperiksaan', id=id, key='id_peperiksaan')
     return redirect(url_for('add_peperiksaan'))
 
-@app.route('/keputusan_matapelajaran', methods=['GET', 'POST'])
-def keputusan_matapelajaran():
+@app.route('/view_results/<int:id_peperiksaan>', methods=['GET', 'POST'])
+def view_results(id_peperiksaan):
     with sql_offsprings() as db:
-        if request.method == 'POST':
-            id_persekolahan = request.form['id_persekolahan'].strip()
-            id_peperiksaan = request.form['id_peperiksaan'].strip()
-            id_subjek_list = request.form.getlist('id_subjek[]')
-            markah_list = request.form.getlist('markah[]')
-            gred_list = request.form.getlist('gred[]')
-
-            for id_subjek, markah, gred in zip(id_subjek_list, markah_list, gred_list):
-                keputusan_matapelajaran = {
-                    'id_persekolahan': id_persekolahan,
-                    'id_peperiksaan': id_peperiksaan,
-                    'id_subjek': id_subjek.strip(),
-                    'markah': markah.strip(),
-                    'gred': gred.strip()
-                }
-                df_keputusan_matapelajaran = pd.DataFrame([keputusan_matapelajaran])
-                db.insert_keputusan_matapelajaran(df_keputusan_matapelajaran)
-
-        sql_data_persekolahan = "SELECT * FROM vw_persekolahan"
-        sql_data_peperiksaan ="""
-            select a.id_peperiksaan, a.tarikh_peperiksaan, a.nama_peperiksaan, c.full_name, d.nama_kelas, a.id_persekolahan
-            from peperiksaan a
-            join persekolahan b
-            on a.id_persekolahan = b.id_persekolahan
-            join person c
-            on c.id_person = b.id_person
-            join kelas d
-            on d.id_kelas = b.id_kelas
-
+        performance_query = f"""
+                SELECT 
+                    id_peperiksaan,
+                    nama_peperiksaan,
+                    COUNT(id_subjek_peperiksaan) AS Total_Subjek,
+                    SUM(markah) AS Jumlah_Markah,
+                    AVG(markah) AS Purata_Markah,
+                    ROUND((SUM(markah) * 100.0) / (COUNT(id_subjek_peperiksaan) * 100), 2) AS Peratus
+                FROM vw_keputusan_peperiksaan
+                WHERE id_keputusan_peperiksaan IS NOT NULL
+                AND id_peperiksaan = {id_peperiksaan}
+                GROUP BY id_peperiksaan, nama_peperiksaan
             """
-        sql_subjek = "SELECT * FROM subjek"
+        performance_df = db.query_data(performance_query)
+        performance = performance_df.to_dict(orient="records")
 
-        data_persekolahan = db.query_data(sql_data_persekolahan)
-        data_peperiksaan = db.query_data(sql_data_peperiksaan)
-        data_subjek = db.query_data(sql_subjek)
+        sql_keputusan_peperiksaan = f"""
+            SELECT * FROM vw_keputusan_peperiksaan
+            WHERE id_peperiksaan = {id_peperiksaan} 
+        """
+        records = db.query_data(sql_keputusan_peperiksaan).to_dict(orient="records")
+        for row in records:
+            id_val, id_markah, id_tp = row.get('id_keputusan_peperiksaan'), row.get("markah"), row.get("tahap_penguasaan")
+            if id_val is not None and not pd.isna(id_val):
+                row["id_keputusan_peperiksaan"] = int(id_val)
+                row["markah"] = int(id_markah)
+                row["tahap_penguasaan"] = int(id_tp)
+            else:
+                row["id_keputusan_peperiksaan", "markah", "tahap_penguasaan"] = ""
 
-        return render_template('tambah_keputusan_matapelajaran.html',
-                               data_persekolahan=data_persekolahan.to_dict(orient='records'),
-                               data_peperiksaan=data_peperiksaan.to_dict(orient='records'),
-                               data_subjek=data_subjek.to_dict(orient='records')
-                               )
+        return render_template("view_results.html",
+                               details=records,
+                               data=performance,
+                               id_peperiksaan=id_peperiksaan)
 
-@app.route('/details_peperiksaan/<int:id>', methods=['GET', 'POST'])
-def details_peperiksaan(id):
+@app.route('/daftar_subjek/<int:id_peperiksaan>', methods=['GET', 'POST'])
+def daftar_subjek(id_peperiksaan):
     with sql_offsprings() as db:
-        if request.method=="POST":
-            print(id)
+        if request.method == "POST":
+            id_peperiksaan = id_peperiksaan
+            id_subjek_list = request.form.getlist('nama_subjek[]')
 
-
-            sql_persekolahan = f"SELECT id_persekolahan FROM keputusan_peperiksaan WHERE id_peperiksaan = {id}"
-            id_persekolahan = db.query_data(sql_query=sql_persekolahan)
-            id_persekolahan = id_persekolahan.loc[0, 'id_persekolahan']
-            id_peperiksaan = id
-            id_subjek_list = request.form.getlist('id_subjek[]')
-            markah_list = request.form.getlist('markah[]')
-            gred_list = request.form.getlist('gred[]')
-
-            print(id_persekolahan, id_peperiksaan, id_subjek_list, markah_list, gred_list)
-
-            for id_subjek, markah, gred in zip(id_subjek_list, markah_list, gred_list):
-                keputusan_matapelajaran = {
-                    'id_persekolahan': id_persekolahan,
-                    'id_peperiksaan': id_peperiksaan,
-                    'id_subjek': id_subjek.strip(),
-                    'markah': markah.strip(),
-                    'gred': gred.strip()
+            for i in range(len(id_subjek_list)):
+                update_subjek_peperiksaan = {
+                    'id_peperiksaan':id_peperiksaan,
+                    'id_subjek':id_subjek_list[i]
                 }
-                df_keputusan_matapelajaran = pd.DataFrame([keputusan_matapelajaran])
-                print(df_keputusan_matapelajaran)
-                db.insert_keputusan_matapelajaran(df_keputusan_matapelajaran)
+                df_update_subjek_peperiksaan = pd.DataFrame([update_subjek_peperiksaan])
+                try:
+                    db.insert_subjek_peperiksaan(df_update_subjek_peperiksaan)
+                    flash(f"Daftar subjek berjaya", "success")
+                except Exception as e:
+                    flash("Daftar subjek gagal", "danger")
 
-        sql_details =f'''
-            SELECT 
-                p.id_peperiksaan, p.nama_peperiksaan, b.full_name, 
-                c.nama_kelas, k.id_keputusan, s.nama_subjek, 
-                k.markah, k.gred
-            FROM keputusan_peperiksaan k
-            LEFT JOIN peperiksaan p ON k.id_peperiksaan = p.id_peperiksaan
-            LEFT JOIN subjek s ON s.id_subjek = k.id_subjek
-            LEFT JOIN persekolahan a ON a.id_persekolahan = k.id_persekolahan
-            LEFT JOIN person b ON a.id_person = b.id_person
-            LEFT JOIN kelas c ON c.id_kelas = a.id_kelas
-            WHERE p.id_peperiksaan = {id}
-        '''
-        data = db.query_data(sql_details)  # Assuming query_data accepts parameterized queries
+            return redirect(url_for('daftar_subjek', id_peperiksaan=id_peperiksaan))
 
-        sql_subjek = "SELECT * FROM subjek"
-        data_subjek = db.query_data(sql_subjek)
+        sql_senarai_subjek = "SELECT id_subjek, nama_subjek FROM subjek"
+        senarai_subjek = db.query_data(sql_senarai_subjek).to_dict(orient="records")
 
-        if data.empty:
-            return render_template('details_peperiksaan.html', details=[])
+        sql_details = f"""SELECT * FROM vw_daftar_peperiksaan WHERE id_peperiksaan={id_peperiksaan}"""
+        details = db.query_data(sql_details).to_dict(orient="records")
 
-        return render_template('details_peperiksaan.html',
-                               details=data.to_dict(orient='records'),
-                               data_subjek=data_subjek.to_dict(orient="records"))
+        sql_registered_subject = f"""
+            SELECT * FROM vw_daftar_peperiksaan WHERE id_peperiksaan = {id_peperiksaan} 
+        """
+        registered_subject_list = db.query_data(sql_registered_subject).to_dict(orient="records")
 
-@app.route('/edit_keputusan/<int:id_peperiksaan>/<int:id_keputusan>', methods=['GET', 'POST'])
-def edit_keputusan(id_peperiksaan, id_keputusan):
+        return render_template("daftar_subjek.html",
+                               senarai_subjek=senarai_subjek,
+                               details=details,
+                               subjects=registered_subject_list)
+
+@app.route('/delete_registered_subject/<int:id_peperiksaan>/<int:id_subjek_peperiksaan>', methods=["GET", "POST"])
+def delete_registered_subject(id_peperiksaan, id_subjek_peperiksaan):
     with sql_offsprings() as db:
-        if request.method == 'POST':
-            update_keputusan = {
-            'markah': request.form['markah'],
-            'gred': request.form['gred'],
-            'id_keputusan': id_keputusan
+        subject_del = db.delete_subjek_peperiksaan(id_peperiksaan, id_subjek_peperiksaan)
+        if subject_del:
+            flash(f"id_subjek_peperiksaan: {id_subjek_peperiksaan} berjaya dipadam", "success")
+        else:
+            flash(f"id_subjek_peperiksaan: {id_subjek_peperiksaan} tidak berjaya dipadam", "danger")
+
+        return redirect(url_for('daftar_subjek', id_peperiksaan=id_peperiksaan))
+
+@app.route('/insert_exam_results/<int:id_peperiksaan>/<int:id_subjek_peperiksaan>', methods=["GET", "POST"])
+def insert_exam_results(id_peperiksaan, id_subjek_peperiksaan):
+    with sql_offsprings() as db:
+        if request.method == "POST":
+            update_result = {
+                'id_peperiksaan': id_peperiksaan,
+                'id_subjek_peperiksaan': id_subjek_peperiksaan,
+                'markah': request.form['markah'].strip(),
+                'gred': request.form['gred'].strip(),
+                'tahap_penguasaan': request.form['tahap_penguasaan'].strip()
             }
-            db.update_keputusan(update_keputusan)
+            df_updated_result = pd.DataFrame([update_result])
+            result_updated = db.insert_result_exam(df_updated_result)
 
-            return redirect(url_for('details_peperiksaan', id=id_peperiksaan))
+            if result_updated:
+                flash(f"id_subjek_peperiksaan: {id_subjek_peperiksaan} berjaya dimuatnaik", "success")
+            else:
+                flash(f"id_subjek_peperiksaan: {id_subjek_peperiksaan} tidak berjaya dimuatnaik", "danger")
 
-        sql_keputusan = f'''
-                select p.id_peperiksaan, b.full_name, c.nama_kelas, k.id_keputusan, s.nama_subjek, k.markah, k.gred
-                from keputusan_peperiksaan k
-                LEFT JOIN peperiksaan p
-                ON k.id_peperiksaan = p.id_peperiksaan
-                LEFT JOIN subjek s
-                ON s.id_subjek = k.id_subjek
-                LEFT JOIN persekolahan a
-                ON a.id_persekolahan = k.id_persekolahan
-                left join person b
-                ON a.id_person = b.id_person
-                Left join kelas c
-                ON c.id_kelas = a.id_kelas
-                WHERE k.id_keputusan = {id_keputusan}              
-            '''
-        keputusan = db.query_data(sql_keputusan).to_dict(orient='records')
+            return redirect(url_for('view_results', id_peperiksaan=id_peperiksaan))
+        else:
+            details = db.get_exam_result_by_ids(id_peperiksaan, id_subjek_peperiksaan)
+            if not details:
+                flash("Maklumat tidak dijumpai.", "danger")
+                return redirect(url_for('view_results', id_peperiksaan=id_peperiksaan))
 
-        return render_template('edit_keputusan.html', id_peperiksaan=id_peperiksaan, keputusan=keputusan )
+            return render_template("insert_exam_results.html", details=details)
 
-@app.route('/delete_keputusan/<int:id_peperiksaan>/<int:id_keputusan>', methods=['POST'])
-def delete_keputusan(id_peperiksaan, id_keputusan):
+@app.route('/edit_exam_results/<int:id_peperiksaan>/<int:id_keputusan_peperiksaan>', methods=["GET", "POST"])
+def edit_exam_results(id_peperiksaan, id_keputusan_peperiksaan):
     with sql_offsprings() as db:
-        db.delete_data(table_name='keputusan_peperiksaan', id=id_keputusan, key='id_keputusan')
-    return redirect(url_for('details_peperiksaan', id=id_peperiksaan))
+        if request.method == "POST":
+            update_results = {
+                'markah': request.form['markah'].strip(),
+                'gred':request.form['gred'].strip(),
+                'tahap_penguasaan':request.form['tahap_penguasaan'].strip(),
+                'id_peperiksaan':id_peperiksaan,
+                'id_keputusan_peperiksaan':id_keputusan_peperiksaan
+            }
+            updated = db.update_keputusan(update_results)
+            if updated:
+                flash("Update success.", "success")
+            else:
+                flash("Update failed", "warning")
+            return redirect(url_for('view_results', id_peperiksaan=id_peperiksaan))
+
+        sql_keputusan_peperiksaan = f"""
+                SELECT * FROM vw_keputusan_peperiksaan
+                WHERE id_peperiksaan = {id_peperiksaan}
+                AND id_keputusan_peperiksaan = {id_keputusan_peperiksaan}  
+            """
+        details = db.query_data(sql_keputusan_peperiksaan)
+        return render_template("edit_exam_results.html",
+                               details=details.to_dict(orient="records"))
+
+@app.route('/delete_exam_result/<int:id_peperiksaan>/<int:id_keputusan_peperiksaan>', methods=["GET", "POST"])
+def delete_exam_result(id_peperiksaan, id_keputusan_peperiksaan):
+    with sql_offsprings() as db:
+        print(id_peperiksaan,id_keputusan_peperiksaan)
+        if request.method == "POST":
+            try:
+                deleted = db.delete_exam_result(id_peperiksaan, id_keputusan_peperiksaan)
+                if deleted:
+                    flash(f"Successful delete ID Keputusan: {id_keputusan_peperiksaan}", "success")
+                    logging.info(f"Successful delete ID Keputusan: {id_keputusan_peperiksaan}")
+                else:
+                    flash(f"Failed to delete ID Keputusan: {id_keputusan_peperiksaan}", "warning")
+                    logging.info(f"Failed delete ID Keputusan: {id_keputusan_peperiksaan}")
+            except Exception as e:
+                logging.warning(f"Failed delete ID Keputusan: {id_keputusan_peperiksaan}: {e}")
+            return redirect(url_for('view_results', id_peperiksaan=id_peperiksaan))
+
+        sql_results_to_delete = f"""
+            SELECT *
+            FROM vw_keputusan_peperiksaan
+            WHERE id_peperiksaan = {id_peperiksaan}
+            AND id_keputusan_peperiksaan = {id_keputusan_peperiksaan}    
+        """
+        data = db.query_data(sql_results_to_delete)
+        return render_template('delete_exam_result.html',
+                                details=data.to_dict(orient="records"))
+
+@app.route('/add_comments/<int:id_peperiksaan>', methods=['GET', 'POST'])
+def add_comments(id_peperiksaan):
+    with sql_offsprings() as db:
+        if request.method == "POST":
+            comment_to_insert = {
+                'komen_oleh': request.form['komen_oleh'].strip(),
+                'komen': request.form['komen'].strip(),
+                'id_peperiksaan': id_peperiksaan
+            }
+            df_comment_insert = pd.DataFrame([comment_to_insert])
+            comment_inserted = db.insert_into_comment(df=df_comment_insert)
+            if comment_inserted:
+                flash("Berjaya memuatnaik komen", "success")
+            else:
+                flash("Gagal memuatnaik komen", "warning")
+
+        komen_query = f"""
+                select k.timestamp, k.id_komen, k.id_peperiksaan,  p.nama_peperiksaan, k.komen_oleh, k.komen
+                from komen_keputusan k
+                JOIN peperiksaan p
+                ON k.id_peperiksaan = p.id_peperiksaan                 
+                WHERE p.id_peperiksaan = {id_peperiksaan}
+            """
+        df_comments = db.query_data(komen_query)
+        if not df_comments.empty:
+            df_comments['timestamp'] = pd.to_datetime(df_comments['timestamp'], errors='coerce').dt.strftime(
+                "%Y-%m-%d %H:%M")
+            details = df_comments.to_dict(orient="records")
+        else:
+            details = None
+
+        return render_template("add_comments.html",
+                               id_peperiksaan=id_peperiksaan,
+                               details=details)
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

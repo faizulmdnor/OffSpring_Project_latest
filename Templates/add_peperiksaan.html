@@ -8,28 +8,20 @@
 <body>
 {% extends "layout.html" %}
 
-{% block title %}Job Logs{% endblock %}
+{% block title %}Tambah peperiksaan.{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <h2>Tambah peperiksaan:</h2>
     <div class="container mt-4">
         <form method="POST">
+
             <div class="form-group mb-3">
-                <label>Nama:</label>
-                <select name="id_person" class="form-control" required>
+                <label>Person:</label>
+                <select name="id_persekolahan" class="form-control" required>
                     <option value="" disabled selected>Sila pilih</option>
-                    {% for person in persons %}
-                    <option value="{{ person.id_person }}">{{ person.full_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group mb-3">
-                <label>Kelas:</label>
-                <select name="id_kelas" class="form-control" required>
-                    <option value="" disabled selected>Sila pilih</option>
-                    {% for kelas in list_kelas %}
-                    <option value="{{ kelas.id_kelas }}">{{ kelas.nama_kelas }}</option>
+                    {% for person in details_person %}
+                    <option value="{{ person.id_persekolahan }}">{{ person.full_name }}: {{ person.nama_kelas }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -61,6 +53,9 @@
             <th>Peperiksaan.</th>
             <th>Tahun peperiksaan</th>
             <th>Tarikh peperiksaan</th>
+            <th>Nama</th>
+            <th>Kelas</th>
+            <th>Sekolah</th>
             <th>Edit</th>
         </tr>
         </thead>
@@ -71,6 +66,9 @@
             <td>{{ exam.nama_peperiksaan }}</td>
             <td>{{ exam.tahun_peperiksaan }}</td>
             <td>{{ exam.tarikh_peperiksaan }}</td>
+            <td>{{ exam.full_name }}</td>
+            <td>{{ exam.nama_kelas }}</td>
+            <td>{{ exam.nama_sekolah }}</td>
             <td>
                 <a href="{{ url_for('edit_peperiksaan', id=exam.id_peperiksaan) }}" class="btn btn-warning btn-sm">Edit</a>
             </td>

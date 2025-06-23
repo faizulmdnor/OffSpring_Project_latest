@@ -13,48 +13,37 @@
 {% block content %}
 
 <div class="container mt-4">
-    <h2>Tambah Peperiksaan</h2>
+    <h2>Senarai Peperiksaan</h2>
     <a href="{{ url_for('add_peperiksaan') }}" class="btn btn-primary mt-2">Tambah Peperiksaan</a>
 </div>
-
 <div class="container mt-4">
-    <h2>Keputusan peperiksaan - matapelajaran.</h2>
-    <a href="{{ url_for('keputusan_matapelajaran') }}" class="btn btn-primary mt-2">Keputusan matapelajaran</a>
-</div>
-
-<div class="container mt-4">
-    <h2>Keputusan peperiksaan.</h2>
-
     <table class="table table-bordered table-striped">
         <thead>
         <tr>
             <th>#</th>
-            <th>Tahun</th>
-            <th>Nama</th>
+            <th>Tarikh</th>
             <th>Nama peperiksaan</th>
-            <th>Tarikh peperiksaan</th>
-            <th>Bil. Matapelajaran</th>
-            <th>Jumlah Skor</th>
-            <th>Purata Markah</th>
-            <th>Peratus Skor</th>
-            <th>Details</th>
+            <th>Nama</th>
+            <th>Kelas</th>
+            <th>Daftar Subjek</th>
+            <th>Keputusan</th>
         </tr>
         </thead>
         <tbody>
-        {% for row in data_peperiksaan %}
+        {% for peperiksaan in data_peperiksaan %}
         <tr>
-            <td>{{ loop.index if loop else index }}</td>
-            <td>{{ row.tahun_persekolahan }}</td>
-            <td>{{ row.full_name }}</td>
-            <td>{{ row.nama_peperiksaan }}</td>
-            <td>{{ row.tarikh_peperiksaan }}</td>
-            <td>{{ row.Bil_Subjek }}</td>
-            <td>{{ row.Jumlah_Score }}</td>
-            <td>{{ row.Purata_Markah }}</td>
-            <td>{{ row.Peratus_Skor | round(2) }}</td>
+            <td>{{ loop.index }}</td>
+            <td>{{ peperiksaan.tarikh_peperiksaan }}</td>
+            <td>{{ peperiksaan.nama_peperiksaan }}</td>
+            <td>{{ peperiksaan.full_name }}</td>
+            <td>{{ peperiksaan.nama_kelas }}</td>
             <td>
-                <a href="{{ url_for('details_peperiksaan', id=row.id_peperiksaan ) }} " class="btn btn-primary m-2">Edit</a>
+                <a href="{{ url_for('daftar_subjek', id_peperiksaan=peperiksaan.id_peperiksaan)}}" class="btn btn-secondary">Daftar subjek</a>
             </td>
+            <td>
+                <a href="{{ url_for('view_results', id_peperiksaan=peperiksaan.id_peperiksaan )}}" class="btn btn-secondary">View</a>
+            </td>
+
         </tr>
         {% endfor %}
         </tbody>

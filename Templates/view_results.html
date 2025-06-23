@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}Keputusan Peperiksaan{% endblock %}
+
+{% block content %}
+<div class="container mt-4" xmlns="http://www.w3.org/1999/html">
+  <h2>Keputusan Peperiksaan</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if details %}
+<div class="row">
+  <!-- Bahagian Kiri: Maklumat Pelajar -->
+  <div class="col-md-8 mb-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Maklumat Pelajar</h5>
+        <p><strong>Peperiksaan:</strong> {{ details[0].nama_peperiksaan }}</p>
+        <p><strong>Kelas:</strong> {{ details[0].nama_kelas }}</p>
+        <p><strong>Nama:</strong> {{ details[0].full_name }}</p>
+      </div>
+    </div>
+  </div>
+  <!-- Bahagian Kanan: Statistik Skor -->
+  <div class="col-md-4 mb-3">
+    {% if data %}
+    <div class="card border-success bg-light shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title text-success">Statistik Skor</h5>
+        <ul class="list-unstyled mb-0">
+          <li><strong>Jumlah Subjek:</strong> {{ data[0].Total_Subjek }}</li>
+          <li><strong>Jumlah Skor:</strong> {{ data[0].Jumlah_Markah }}</li>
+          <li><strong>Purata Skor:</strong> {{ "%.2f"|format(data[0].Purata_Markah) }}</li>
+          <li><strong>Peratus:</strong> {{ "%.2f"|format(data[0].Peratus) }}%</li>
+        </ul>
+        <a href="{{ url_for('add_comments', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Tambah Komen</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">Tiada data untuk dipaparkan, sila update keputusan peperiksaan.</div>
+    {% endif %}
+  </div>
+</div>
+  <p><strong>Sila <span style="color: #dc3545;">kemaskini</span> keputusan peperiksaan di bawah yang berwarna merah:</strong></p>
+
+  <div class="row">
+    <div class="card shadow-sm border-left-primary">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Butiran Keputusan Peperiksaan</h5>
+        <table class="table table-bordered table-striped mt-3">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>ID Keputusan Peperiksaan</th>
+            <th>ID Subjek Peperiksaan</th>
+            <th>Subjek</th>
+            <th>Markah</th>
+            <th>Gred</th>
+            <th>TP</th>
+            <td><strong><span style="color: #dc3545;">Tindakan</span></strong></td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for d in details %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td {% if d.id_keputusan_peperiksaan is none or d.id_keputusan_peperiksaan == '' or d.id_keputusan_peperiksaan != d.id_keputusan_peperiksaan %} style="background-color: #f8d7da;" {% endif %}>
+            {{ '' if d.id_keputusan_peperiksaan is none or d.id_keputusan_peperiksaan != d.id_keputusan_peperiksaan else d.id_keputusan_peperiksaan }}
+            </td>
+            <td>{{ d.id_subjek_peperiksaan }}</td>
+            <td>{{ d.nama_subjek }}</td>
+            <td {% if d.markah is none or d.markah == '' or d.markah != d.markah %} style="background-color: #f8d7da;" {% endif %}>
+            {{ '' if d.markah is none or d.markah != d.markah else d.markah }}
+            </td>
+            <td {% if d.gred is none or d.gred == '' or d.gred != d.gred %} style="background-color: #f8d7da;" {% endif %}>
+            {{ '' if d.gred is none or d.gred != d.gred else d.gred }}
+            </td>
+            <td {% if d.tahap_penguasaan is none or d.tahap_penguasaan == '' or d.tahap_penguasaan != d.tahap_penguasaan %} style="background-color: #f8d7da;" {% endif %}>
+            {{ '' if d.tahap_penguasaan is none or d.tahap_penguasaan != d.tahap_penguasaan else d.tahap_penguasaan }}
+            </td>
+            <td>
+              {% if d.id_keputusan_peperiksaan and d.id_keputusan_peperiksaan == d.id_keputusan_peperiksaan %}
+              <!-- ID wujud: Papar Edit dan Padam -->
+              <a href="{{ url_for('edit_exam_results', id_peperiksaan=d.id_peperiksaan, id_keputusan_peperiksaan=d.id_keputusan_peperiksaan) }}" class="btn btn-warning">Edit</a>
+              <a href="{{ url_for('delete_exam_result', id_peperiksaan=d.id_peperiksaan, id_keputusan_peperiksaan=d.id_keputusan_peperiksaan) }}" class="btn btn-danger">Padam</a>
+              {% else %}
+              <!-- ID tak wujud: Papar Kemaskini -->
+              <a href="{{ url_for('insert_exam_results', id_peperiksaan=d.id_peperiksaan, id_subjek_peperiksaan=d.id_subjek_peperiksaan) }}" class="btn btn-primary">Kemaskini</a>
+              <span class="text-muted">Tiada ID Keputusan Peperiksaan</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <a href="{{ url_for('peperiksaan') }}" class="btn btn-primary">Kembali</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">Tiada data keputusan untuk dikemaskini.</div>
+  {% endif %}
+</div>
+{% endblock %}

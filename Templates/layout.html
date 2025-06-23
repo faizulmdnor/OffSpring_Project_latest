@@ -4,58 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}My Portal{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
   <style>
     body {
       display: flex;
+      min-height: 100vh;
+      margin: 0;
     }
+
     .sidebar {
       width: 220px;
-      min-height: 100vh;
       background-color: #f8f9fa;
       padding: 1rem;
+      border-right: 1px solid #dee2e6;
     }
+
     .sidebar a {
       display: block;
       padding: 10px;
       color: #000;
       text-decoration: none;
     }
+
     .sidebar a:hover {
-      background-color: #ddd;
+      background-color: #e9ecef;
       border-radius: 5px;
     }
+
     .main-content {
       flex-grow: 1;
       padding: 2rem;
+      background-color: #fff;
+    }
+
+    .close {
+      border: none;
+      background: transparent;
+      font-size: 1.5rem;
+      line-height: 1;
     }
   </style>
 </head>
 <body>
+
+  <!-- Sidebar -->
   <div class="sidebar">
-    <a href="{{ url_for('index' )}}"><h4>OffSprings</h4></a>
-    <a href="{{ url_for('persekolahan') }}">Persekolahan</a>
-    <a href="{{ url_for('peperiksaan') }}">Peperiksaan</a>
-    <a href="{{ url_for('keputusan_matapelajaran') }}">Keputusan matapelajaran</a>
+    <a href="{{ url_for('index') }}"><h4><i class="fas fa-home"></i> OffSprings</h4></a>
+    <a href="{{ url_for('persekolahan') }}"><i class="fas fa-school"></i> Persekolahan</a>
+    <a href="{{ url_for('peperiksaan') }}"><i class="fas fa-file-alt"></i> Peperiksaan</a>
   </div>
 
+  <!-- Main Content -->
   <div class="main-content">
+
+    <!-- Flash Message Alerts -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="container mt-3">
+    <div class="container">
       {% for category, message in messages %}
       <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
         {{ message }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Tutup">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       {% endfor %}
     </div>
     {% endif %}
     {% endwith %}
+
     {% block content %}
     {% endblock %}
   </div>
+
+  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

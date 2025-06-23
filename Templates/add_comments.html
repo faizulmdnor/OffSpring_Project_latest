@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block title %}Kemaskini Keputusan{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col-md-8 mb-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">Tulis Komen Anda</h5>
+                <form class="mt-3" method="POST">
+                    <div class="mb-3">
+                        <label for="komen_oleh" class="form-label">Komen dari:</label>
+                        <input type="text" id="komen_oleh" name="komen_oleh" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="komen" class="form-label">Komen:</label>
+                        <textarea class="form-control" id="komen" name="komen" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Hantar Komen</button>
+                </form>
+            </div>
+        </div>
+        {% if details %}
+        <div class="continer mt-4">
+            <div class="card-body">
+                <h5 class="card-title text-primary">Himpunan komen.</h5>
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tarikh</th>
+                        <th>Nama Peperiksaan</th>
+                        <th>Komen Oleh</th>
+                        <th>Komen</th>
+                        <th>Tindakan</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for d in details %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ d.timestamp }}</td>
+                        <td>{{ d.nama_peperiksaan }}</td>
+                        <td>{{ d.komen_oleh }}</td>
+                        <td>{{ d.komen }}</td>
+                        <td>
+                            <a href="" class="btn btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="continer mt-4">
+            <p><strong>No Data!</strong></p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if details %}
+  <div class="container mt-3">
+      <a href="{{ url_for('view_results', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Kembali</a>
+  </div>
+{% else %}
+  <div class="container mt-3">
+      <a href="{{ url_for('peperiksaan') }}" class="btn btn-secondary">Kembali ke senarai peperiksaan</a>
+  </div>
+{% endif %}
+
+{% endblock %}

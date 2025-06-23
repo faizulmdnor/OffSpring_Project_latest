@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daftar Subjek Peperiksaan</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<script>
+        function tambahBaris() {
+            const container = document.getElementById('subjek-container');
+            const firstRow = container.querySelector('tr');
+            const clone = firstRow.cloneNode(true);
+
+            // Reset nilai input & select dalam baris klon
+            clone.querySelectorAll('input').forEach(input => input.value = '');
+            clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+            container.appendChild(clone);
+        }
+
+        function padamBaris(button) {
+            const container = document.getElementById('subjek-container');
+            const row = button.closest('tr');
+
+            if (container.children.length > 1) {
+                container.removeChild(row);
+            } else {
+                alert("Sekurang-kurangnya satu matapelajaran diperlukan.");
+            }
+        }
+        function checkAddSubject(select) {
+             if (select.value === "__add__") {
+                      window.location.href = "{{ url_for('add_subject') }}";
+                      }
+        }
+</script>
+<body>
+{% extends "layout.html" %}
+{% block title %}Daftar Subjek Peperiksaan{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Daftar Subjek Peperiksaan</h2>
+
+    {% if data %}
+        <!-- Maklumat pelajar dan peperiksaan -->
+        <div class="mb-4">
+            <p><strong>Nama:</strong> {{ data[0].full_name }}</p>
+            <p><strong>Kelas:</strong> {{ data[0].nama_kelas }}</p>
+            <p><strong>Sekolah:</strong> {{ data[0].nama_sekolah }}</p>
+            <p><strong>Nama Peperiksaan:</strong> {{ data[0].nama_peperiksaan }}</p>
+        </div>
+    {% endif %}
+
+    <!-- Borang daftar subjek -->
+    <form method="POST" action="{{ url_for('daftar_subjek_peperiksaan', id_peperiksaan=data[0].id_peperiksaan if data else id_peperiksaan) }}">
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>Subjek</th>
+                <th>Tindakan</th>
+            </tr>
+            </thead>
+            <tbody id="subjek-container">
+            <tr>
+                <td>
+                    <select name="id_subjek[]" class="form-control" required onchange="checkAddSubject(this)">
+                        <option value="" disabled selected>Sila pilih</option>
+                        {% for subjek in data_subjek %}
+                        <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
+                        {% endfor %}
+                        <option value="__add__">Tambah matapelajaran</option>
+                    </select>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="padamBaris(this)">Padam</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary mb-3" onclick="tambahBaris()">Tambah Subjek</button>
+        <button type="submit" class="btn btn-primary mb-3">Simpan</button>
+    </form>
+
+    {% if data %}
+    <!-- Jadual senarai subjek yang telah didaftarkan -->
+    <h4 class="mt-4">Subjek Telah Didaftarkan</h4>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>#</th>
+                <th>Subject ID</th>
+                <th>Nama Subjek</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ row.id_subjek_peperiksaan }}</td>
+                <td>{{ row.nama_subjek }}</td>
+                <td>
+                    {% if row.id_subjek_peperiksaan %}
+                    <form method="POST" action="{{ url_for('delete_registered_subject', id_peperiksaan=row.id_peperiksaan, id_subjek_peperiksaan=row.id_subjek_peperiksaan) }}" onsubmit="return confirm('Anda pasti mahu padam keputusan ini? id: {{ row.id_subjek_peperiksaan }}')">
+                        <button type="submit" class="btn btn-danger btn-sm">Padam</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">ID tiada</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <button type="button" class="btn btn-secondary mb-3" onclick="window.location.href='{{ url_for('peperiksaan') }}'">Done</button>
+</div>
+
+
+{% endblock %}
+</body>
+</html>

@@ -34,12 +34,13 @@
       <div class="card-body">
         <h5 class="card-title text-success">Statistik Skor</h5>
         <ul class="list-unstyled mb-0">
-          <li><strong>Jumlah Subjek:</strong> {{ data[0].Total_Subjek }}</li>
-          <li><strong>Jumlah Skor:</strong> {{ data[0].Jumlah_Markah }}</li>
-          <li><strong>Purata Skor:</strong> {{ "%.2f"|format(data[0].Purata_Markah) }}</li>
-          <li><strong>Peratus:</strong> {{ "%.2f"|format(data[0].Peratus) }}%</li>
+          <li><strong>Jumlah Subjek: </strong> {{ analisa[0].total_subjek }} </li>
+          <li><strong>Jumlah Skor: </strong> {{ analisa[0].total_score }} </li>
+          <li><strong>Purata Skor: </strong> {{ analisa[0].avg_score }} </li>
+          <li><strong>Peratus: </strong> {{ analisa[0].peratus }}% </li>
+          <li><strong>Analisa Keputusan: </strong> {{ analisa[0].analisa_keputusan }} </li>
         </ul>
-        <a href="{{ url_for('add_comments', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Tambah Komen</a>
+        <a href="{{ url_for('add_comments', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Komen</a>
       </div>
     </div>
     {% else %}
@@ -58,6 +59,7 @@
           <tr>
             <th>#</th>
             <th>ID Keputusan Peperiksaan</th>
+            <th>ID Peperiksaan</th>
             <th>ID Subjek Peperiksaan</th>
             <th>Subjek</th>
             <th>Markah</th>
@@ -72,6 +74,9 @@
             <td>{{ loop.index }}</td>
             <td {% if d.id_keputusan_peperiksaan is none or d.id_keputusan_peperiksaan == '' or d.id_keputusan_peperiksaan != d.id_keputusan_peperiksaan %} style="background-color: #f8d7da;" {% endif %}>
             {{ '' if d.id_keputusan_peperiksaan is none or d.id_keputusan_peperiksaan != d.id_keputusan_peperiksaan else d.id_keputusan_peperiksaan }}
+            </td>
+            <td>
+              {{ d.id_peperiksaan }}
             </td>
             <td>{{ d.id_subjek_peperiksaan }}</td>
             <td>{{ d.nama_subjek }}</td>
@@ -92,7 +97,7 @@
               {% else %}
               <!-- ID tak wujud: Papar Kemaskini -->
               <a href="{{ url_for('insert_exam_results', id_peperiksaan=d.id_peperiksaan, id_subjek_peperiksaan=d.id_subjek_peperiksaan) }}" class="btn btn-primary">Kemaskini</a>
-              <span class="text-muted">Tiada ID Keputusan Peperiksaan</span>
+              <span class="text-muted">Tiada Keputusan</span>
               {% endif %}
             </td>
           </tr>

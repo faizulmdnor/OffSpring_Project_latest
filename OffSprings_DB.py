@@ -511,3 +511,80 @@ class sql_offsprings:
             self.conn.rollback()
             logger.error(f"Insert Error: {e}")
             return False
+
+    def update_komen(self, update: dict):
+        update = f"""
+            UPDATE komen_keputusan
+            SET komen_oleh = ?,
+                komen = ?
+            WHERE id_komen = ?
+            AND id_peperiksaan = ?    
+        """
+
+        values = (
+            update['komen_oleh'],
+            update['komen'],
+            update['id_komen'],
+            update['id_peperiksaan']
+        )
+        try:
+            logger.info(f"Updating komen id: {update['id_komen']}")
+            self.cursor.execute(update, values)
+            self.conn.commit()
+            logger.info(f"Update komen, success")
+            return True
+
+        except Exception as e:
+            self.conn.rollback()
+            logger.warning(f'Update komen id: {update['id_komen']} failed. error: {e}')
+            return False
+
+    def update_id_jadual_subjek_peperiksaan(self, update:dict):
+        update_subjek_peperiksaan = f"""
+            UPDATE subjek_peperiksaan
+            SET id_jadual = ?
+            WHERE id_peperiksaan = ?
+            AND id_subjek_peperiksaan = ?    
+        """
+        values = (
+            update['id_jadual'],
+            update['id_peperiksaan'],
+            update['id_subjek_peperiksaan']
+        )
+        try:
+            logger.info(f"Insert id_jadual {update['id_jadual']} into subjek peperiksaan table {update['id_subjek_peperiksaan']}")
+            self.cursor.execute(update_subjek_peperiksaan, values)
+            self.conn.commit()
+            logger.info(f"Inserted id_jadual {update['id_jadual']} into subjek peperiksaan table {update['id_subjek_peperiksaan']}" )
+            return True
+        except Exception as e:
+            logger.warning(f"FAILED: updating id_jadual {update['id_jadual']} into subjek peperiksaan table, error: {e}")
+            self.conn.rollback()
+            return False
+
+    def update_jadual(self, update:dict):
+        update_sql = """
+            UPDATE jadual_peperiksaan
+            SET tarikh = ?,
+                mula = ?,
+                tamat = ?
+            WHERE id_jadual = ?   
+        """
+
+        values = (
+            update['tarikh'],
+            update['mula'],
+            update['tamat'],
+            update['id_jadual']
+        )
+
+        try:
+            logger.info(f"Updating jadual: {update['id_jadual']}")
+            self.cursor.execute(update_sql, values)
+            self.conn.commit()
+            logger.info(f"Update jadual, success: {update['id_jadual']}")
+            return True
+        except Exception as e:
+            logger.warning(f"Updating failed: {e}")
+            return False
+

@@ -1,9 +1,11 @@
 import logging
 
+import pyodbc
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pandas as pd
 from datetime import datetime
 from OffSprings_DB import sql_offsprings
+from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -14,11 +16,19 @@ def index():
     with sql_offsprings() as db:
         try:
             data = db.query_data("SELECT * FROM vw_offsprings_details")
-            # You can print or process data here if needed
+
+            # Pastikan 'birth_date' dalam format datetime
+            data['birth_date'] = pd.to_datetime(data['birth_date'], errors='coerce')
+
+            today = pd.to_datetime("today")
+            # Format umur sebagai "X tahun Y bulan"
+            data['umur'] = data['birth_date'].apply(
+                lambda x: f"{relativedelta(today, x).years} tahun {relativedelta(today, x).months} bulan"
+                if pd.notnull(x) else "-"
+            )
             return render_template('index.html', data=data.to_dict(orient='records'))
         except Exception as e:
             return f"Error retrieving data: {e}"
-
 
 @app.route('/persekolahan', methods=['GET', "POST"])
 def persekolahan():
@@ -50,7 +60,6 @@ def persekolahan():
                                persons=persons.to_dict(orient='records'),
                                data_kelas=data_kelas.to_dict(orient='records')
                                )
-
 
 @app.route('/tambah_sekolah', methods=['GET', 'POST'])
 def insert_sekolah():
@@ -529,7 +538,13 @@ def view_results(id_peperiksaan):
             """
         performance_df = db.query_data(performance_query)
         performance = performance_df.to_dict(orient="records")
-
+        analisa_query = f"""
+                SELECT *
+                FROM vw_analisa_keputusan
+                WHERE id_peperiksaan = {id_peperiksaan}  
+                """
+        analisa_df = db.query_data(analisa_query)
+        analisa = analisa_df.to_dict(orient="records")
         sql_keputusan_peperiksaan = f"""
             SELECT * FROM vw_keputusan_peperiksaan
             WHERE id_peperiksaan = {id_peperiksaan} 
@@ -547,6 +562,7 @@ def view_results(id_peperiksaan):
         return render_template("view_results.html",
                                details=records,
                                data=performance,
+                               analisa=analisa,
                                id_peperiksaan=id_peperiksaan)
 
 @app.route('/daftar_subjek/<int:id_peperiksaan>', methods=['GET', 'POST'])
@@ -573,18 +589,27 @@ def daftar_subjek(id_peperiksaan):
         sql_senarai_subjek = "SELECT id_subjek, nama_subjek FROM subjek"
         senarai_subjek = db.query_data(sql_senarai_subjek).to_dict(orient="records")
 
-        sql_details = f"""SELECT * FROM vw_daftar_peperiksaan WHERE id_peperiksaan={id_peperiksaan}"""
+        sql_details = f"""SELECT * FROM vw_peperiksaan WHERE id_peperiksaan={id_peperiksaan}"""
         details = db.query_data(sql_details).to_dict(orient="records")
 
         sql_registered_subject = f"""
             SELECT * FROM vw_daftar_peperiksaan WHERE id_peperiksaan = {id_peperiksaan} 
         """
-        registered_subject_list = db.query_data(sql_registered_subject).to_dict(orient="records")
+
+        registered_subject_list = db.query_data(sql_registered_subject)
+        registered_subject_list['id_jadual'] = registered_subject_list['id_jadual'].fillna(0).astype(int)
+        registered_subject_list = registered_subject_list.sort_values(by=['tarikh', 'mula'], na_position='last')
+
+        if registered_subject_list.empty:
+            flash("Tiada subjek didaftarkan.", "info")
+            registered_subject_list = []
+            print(registered_subject_list)
+
 
         return render_template("daftar_subjek.html",
                                senarai_subjek=senarai_subjek,
                                details=details,
-                               subjects=registered_subject_list)
+                               subjects=registered_subject_list.to_dict(orient="records"))
 
 @app.route('/delete_registered_subject/<int:id_peperiksaan>/<int:id_subjek_peperiksaan>', methods=["GET", "POST"])
 def delete_registered_subject(id_peperiksaan, id_subjek_peperiksaan):
@@ -713,7 +738,126 @@ def add_comments(id_peperiksaan):
         return render_template("add_comments.html",
                                id_peperiksaan=id_peperiksaan,
                                details=details)
+@app.route('/edit_comments/<int:id_peperiksaan>/<int:id_komen>', methods=['GET', 'POST'])
+def edit_comments(id_peperiksaan, id_komen):
+    with sql_offsprings() as db:
+        if request.method == 'POST':
+            komen_update = [{
+                'id_komen': id_komen,
+                'id_peperiksaan': id_peperiksaan,
+                'komen_oleh': request.form['komen_oleh'],
+                'komen': request.form['komen']
+            }]
 
+            updated = db.update_komen(komen_update)
+            if updated:
+                flash(f"Update komen id: {updated['id_komen']} success", "success")
+            else:
+                flash(f"Update komen id: {updated['id_komen']} success", "warning")
+
+            return redirect(url_for('add_comment'), id_peperiksaan=id_peperiksaan)
+        komen_sql = f"""
+            SELECT *
+            FROM komen_keputusan
+            WHERE id_komen = {id_komen}
+            AND id_peperiksaan = {id_peperiksaan}   
+        """
+        komen_df = db.query_data(komen_sql)
+        komen = komen_df.to_dict(orient="records")
+
+        return render_template('edit_comment.html',
+                               details=komen,
+                               id_komen=id_komen,
+                               id_peperiksaan=id_peperiksaan)
+
+@app.route('/add_jadual/<int:id_peperiksaan>/<int:id_subjek_peperiksaan>', methods=['GET', 'POST'])
+def add_jadual(id_peperiksaan, id_subjek_peperiksaan):
+    with sql_offsprings() as db:
+        if request.method == 'POST':
+            data_jadual = {
+                'tarikh': request.form['tarikh'],
+                'mula': request.form['masa_mula'],
+                'tamat': request.form['masa_tamat']
+            }
+            df_jadual = pd.DataFrame([data_jadual])
+
+            try:
+                db.insert_into_table(table_name='jadual_peperiksaan', df=df_jadual)
+                flash("Berjaya simpan tarikh dan masa peperiksaan", "success")
+                query_jadual = """
+                        SELECT TOP 1 id_jadual
+                        FROM jadual_peperiksaan
+                        ORDER BY created_datetime desc  
+                    """
+
+                df_id_jadual = db.query_data(query_jadual)
+                id_jadual = df_id_jadual.loc[0, 'id_jadual']
+                update = {
+                    'id_jadual':int(id_jadual),
+                    'id_peperiksaan': id_peperiksaan,
+                    'id_subjek_peperiksaan': id_subjek_peperiksaan
+                }
+
+                try:
+                    updated = db.update_id_jadual_subjek_peperiksaan(update)
+                    if updated:
+                        flash(f"Berjaya kemaskini id_jadual: {id_jadual}", "success")
+                    else:
+                        flash(f"Gagal kemaskini id_jadual: {id_jadual}", "warning")
+                except Exception as e:
+                    logging.warning(e)
+
+            except Exception as e:
+                flash("Gagal simpan tarikh dan masa peperiksaan", "warning")
+
+            return redirect(url_for('daftar_subjek', id_peperiksaan=id_peperiksaan,
+                                        id_subjek_peperiksaan=id_subjek_peperiksaan))
+
+        query_details =f"""
+                SELECT *
+                FROM vw_daftar_peperiksaan
+                WHERE id_peperiksaan = {id_peperiksaan}
+                AND id_subjek_peperiksaan = {id_subjek_peperiksaan}
+            """
+        df_details = db.query_data(query_details)
+
+    return render_template('add_jadual.html',
+                           details = df_details.to_dict(orient='records'),
+                           id_peperiksaan=id_peperiksaan,
+                           id_subjek_peperiksaan = id_subjek_peperiksaan)
+
+@app.route('/edit_jadual/<int:id_jadual>/<int:id_peperiksaan>', methods=['GET', 'POST'])
+def edit_jadual(id_jadual, id_peperiksaan):
+    with sql_offsprings() as db:
+        if request.method=='POST':
+            update = {
+                'id_jadual': id_jadual,
+                'tarikh': request.form['tarikh'],
+                'mula': request.form['mula'],
+                'tamat': request.form['tamat']
+            }
+
+            try:
+                updated = db.update_jadual(update)
+                if updated:
+                    flash(f"Kemaskini jadual berjaya: {id_jadual}", "success")
+                else:
+                    flash(f"Kemaskini jadual gagal: {id_jadual}", "success")
+            except Exception as e:
+                flash(f"Kemaskini jadual gagal: {id_jadual}: {e}", "success")
+            return redirect(url_for('daftar_subjek', id_peperiksaan=id_peperiksaan))
+
+        query_jadual = f"""
+                        SELECT * 
+                        FROM vw_daftar_peperiksaan
+                        WHERE id_peperiksaan = {id_peperiksaan}
+                        AND id_jadual = {id_jadual}  
+                    """
+        df_details = db.query_data(query_jadual)
+        details = df_details.to_dict(orient='records')
+
+        return render_template('edit_jadual.html',
+                               details=details)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

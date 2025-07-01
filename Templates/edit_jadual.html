@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}Kemaskini jadual peperiksaan/ujian.{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="text-primary mb-4">Kemaskini jadual peperiksaan/ujian.</h2>
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm bg-light border-left-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Maklumat Pelajar.</h5>
+                    {% if details %}
+                    <p><strong>Sekolah:</strong> {{ details[0].nama_sekolah }}</p>
+                    <p><strong>Peperiksaan:</strong> {{ details[0].nama_peperiksaan }}</p>
+                    <p><strong>Kelas:</strong> {{ details[0].nama_kelas }}</p>
+                    <p><strong>Nama:</strong> {{ details[0].full_name }}</p>
+
+                    {% else %}
+                    <p><strong>Ralat:</strong>Rekod tidak ditemui.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm bg-light border-left-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Maklumat jadual matapelajaran.</h5>
+                    <p><strong>Nama subjek:</strong> {{ details[0].nama_subjek }}</p>
+                    <p><strong>Tarikh peperiksaan/ujian:</strong> {{ details[0].tarikh }}</p>
+                    <p><strong>Masa mula:</strong> {{ details[0].mula[:5] }}</p>
+                    <p><strong>Masa tamat:</strong> {{ details[0].tamat[:5] }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form class="mt-3" method="post">
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <div class="card shadow-sm bg-light border-left-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Kemaskini maklumat jadual.</h5>
+                        <div class="mb-3">
+                            <label>Tarikh:</label>
+                            <input type="date" name="tarikh" class="form-control" value="{{ details[0].tarikh }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Masa mula:</label>
+                            <input type="time" name="mula" class="form-control" value="{{ details[0].mula }}" >
+                        </div>
+                        <div class="mb-3">
+                            <label>Masa tamat:</label>
+                            <input type="time" name="tamat" class="form-control" value="{{ details[0].tamat }}" >
+                        </div>
+                        <button type="submit" class="btn btn-success">Kemaskini</button>
+                        <a href="{{ url_for('daftar_subjek', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-secondary">Kembali</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

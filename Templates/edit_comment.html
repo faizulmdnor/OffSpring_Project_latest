@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Komen{% endblock %}
+
+{% block content %}
+<div class="container mt-4" xmlns="http://www.w3.org/1999/html">
+  <h2>Edit komen</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if details %}
+  {{ details }}
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <div class="card shadow-sm p-3">
+        <h5 class="card-title text-primary">Tulis Komen Anda</h5>
+        <form method="POST">
+          <div class="mb-3">
+            <label for="id_komen" class="form-label">ID Komen:</label>
+            <input type="number" id="id_komen" name="id_komen" class="form-control" value="{{ details[0].id_komen }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="komen_oleh" class="form-label">Komen dari:</label>
+            <input type="text" id="komen_oleh" name="komen_oleh" class="form-control" value="{{ details[0].komen_oleh }}" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="komen" class="form-label">Komen:</label>
+            <textarea class="form-control" id="komen" name="komen" rows="4" required>{{ details[0].komen }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Hantar Komen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p>Tiada butiran komen untuk diedit.</p>
+  {% endif %}
+</div>
+{% if details %}
+  <div class="container mt-3">
+      <a href="{{ url_for('view_results', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Kembali</a>
+  </div>
+{% else %}
+  <div class="container mt-3">
+      <a href="{{ url_for('view_results', id_peperiksaan=details[0].id_peperiksaan) }}" class="btn btn-primary">Kembali</a>
+  </div>
+{% endif %}
+{% endblock %}

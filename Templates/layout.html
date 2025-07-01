@@ -52,11 +52,15 @@
   </style>
 </head>
 <body>
-
   <!-- Sidebar -->
   <div class="sidebar">
-    <a href="{{ url_for('index') }}"><h4><i class="fas fa-home"></i> OffSprings</h4></a>
-    <a href="{{ url_for('persekolahan') }}"><i class="fas fa-school"></i> Persekolahan</a>
+    <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> OffSprings</a>
+    <a href="{{ url_for('persekolahan') }}"><i class="fas fa-book-open"></i> Persekolahan</a>
+    <div class="submenu ms-3">
+      <a href="{{ url_for('insert_sekolah') }}"><i class="fas fa-school"></i> Sekolah</a>
+      <a href="{{ url_for('insert_kelas') }}"><i class="fas fa-clipboard-list	"></i> kelas </a>
+      <a href="{{ url_for('insert_guru') }}"><i class="fas fa-chalkboard-teacher"></i> Guru</a>
+    </div>
     <a href="{{ url_for('peperiksaan') }}"><i class="fas fa-file-alt"></i> Peperiksaan</a>
   </div>
 

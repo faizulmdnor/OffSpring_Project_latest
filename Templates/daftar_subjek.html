@@ -20,26 +20,15 @@
             </div>
         </div>
     </div>
-
+<!--Borang pendaftaran subjek-->
     <form method="post" id="subjekForm" class="mt-3">
         <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title text-primary">Daftar Subjek Untuk Peperiksaan</h5>
                 <div id="subjekFields">
-                    <div class="row mb-3 subjek-line">
-                        <div class="col-md-10">
-                            <label class="form-label">Nama Subjek:</label>
-                            <select class="form-select" name="nama_subjek[]" required>
-                                <option value="">Sila pilih</option>
-                                {% for subjek in senarai_subjek %}
-                                <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-danger w-100" onclick="padamBaris(this)">Padam Baris</button>
-                        </div>
-                    </div>
+
+                    <label class="form-label">Nama subjek</label>
+
                 </div>
                 <div class="mb-3">
                     <button type="button" class="btn btn-success" onclick="tambahSubjek()">+ Tambah Baris Subjek</button>
@@ -54,11 +43,18 @@
         <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title text-primary">Subjek Telah Didaftar</h5>
+                {% if subjects %}
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
                         <th>#</th>
+                        <th>Id peperiksaan</th>
+                        <th>Id subjek</th>
+                        <th>Id jadual</th>
                         <th>Registered subject.</th>
+                        <th>Tarikh</th>
+                        <th>Mula</th>
+                        <th>Tamat</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -66,15 +62,35 @@
                     {% for subject in subjects %}
                     <tr>
                         <td>{{ loop.index }}</td>
+                        <td>{{ subject.id_peperiksaan }}</td>
+                        <td>{{ subject.id_subjek_peperiksaan }}</td>
+                        <td>{{ subject.id_jadual if subject.id_jadual else '' }}</td>
                         <td>{{ subject.nama_subjek }}</td>
+                        <td>{{ subject.tarikh if subject.tarikh else ''}}</td>
+                        <td>{{ subject.mula[:5] if subject.mula else '' }}</td>
+                        <td>{{ subject.tamat[:5] if subject.mula else '' }}</td>
                         <td>
-                            <a href="{{ url_for('delete_registered_subject', id_peperiksaan=details[0].id_peperiksaan, id_subjek_peperiksaan=subject.id_subjek_peperiksaan) }}" class="btn btn-danger btn-sm"
+                            {% if subject.id_peperiksaan and subject.id_subjek_peperiksaan %}
+                            <a href="{{ url_for('delete_registered_subject', id_peperiksaan=subject.id_peperiksaan, id_subjek_peperiksaan=subject.id_subjek_peperiksaan) }}" class="btn btn-danger btn-sm"
                                onclick="return confirm('Anda pasti untuk memadam subjek {{ subject.nama_subjek }}')">Padam Subjek</a>
+                            {% else %}
+                            <span class="text-muted">ID tidak lengkap</span>
+                            {% endif %}
+                            {% if subject.id_jadual == 0 %}
+                            <a href="{{ url_for('add_jadual', id_peperiksaan=subject.id_peperiksaan, id_subjek_peperiksaan=subject.id_subjek_peperiksaan) }}" class="btn btn-success">Tambah</a>
+                            {% else %}
+                            <a href="{{ url_for('edit_jadual', id_jadual=subject.id_jadual, id_peperiksaan=subject.id_peperiksaan) }}" class="btn btn-success">kemaskini</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                    <div class="container mt-3">
+                        <a href="{{ url_for('peperiksaan') }}" class="btn btn-primary">Done</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -86,32 +102,48 @@
     <div class="alert alert-warning">Tiada data keputusan untuk dikemaskini.</div>
     {% endif %}
 </div>
+
+<!--template subjek-->
+<select id="templateSubjekOption" class="d-none">
+    {% for subjek in senarai_subjek %}
+    <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
+    {% endfor %}
+</select>
+
+<template id="subjek-template">
+    <div class="row mb-3 subjek-line border-start border-warning ps-2">
+        <div class="col-md-3">
+
+            <select class="form-select" name="nama_subjek[]" required>
+                <option value="">Sila pilih</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-outline-danger w-100" onclick="padamBaris(this)">Padam Baris</button>
+        </div>
+    </div>
+</template>
+
 <script>
 function tambahSubjek() {
-  const subjekFields = document.getElementById("subjekFields");
+    const template = document.getElementById("subjek-template");
+    const clone = template.content.cloneNode(true);
 
-  const newLine = document.createElement("div");
-  newLine.classList.add("row", "mb-3", "subjek-line");
-  newLine.innerHTML = `
-    <div class="col-md-10">
-      <label class="form-label">Nama Subjek:</label>
-      <select class="form-select" name="nama_subjek[]" required>
-        <option value="">Sila pilih</option>
-        {% for subjek in senarai_subjek %}
-        <option value="{{ subjek.id_subjek }}">{{ subjek.nama_subjek }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-2 d-flex align-items-end">
-      <button type="button" class="btn btn-outline-danger w-100" onclick="padamBaris(this)">Padam Baris</button>
-    </div>
-  `;
-  subjekFields.appendChild(newLine);
+    const select = clone.querySelector("select");
+    const templateOptions = document.getElementById("templateSubjekOption").children;
+
+    for (const option of templateOptions) {
+        const cloneOption = option.cloneNode(true);
+        select.appendChild(cloneOption);
+    }
+
+    document.getElementById("subjekFields").appendChild(clone);
 }
 
 function padamBaris(button) {
-  const baris = button.closest(".subjek-line");
-  baris.remove();
+    const baris = button.closest(".subjek-line");
+    baris.remove();
 }
 </script>
+
 {% endblock %}

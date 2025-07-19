@@ -3,8 +3,6 @@ from sqlalchemy import create_engine
 import pandas as pd
 import logging
 
-from sqlalchemy.dialects.mssql.information_schema import columns
-
 DATABASE = 'OffSprings'
 SERVER = 'FAIZULONXY\\SQLEXPRESS'
 
@@ -124,6 +122,35 @@ class sql_offsprings:
         except pyodbc.Error as e:
             self.conn.rollback()
             logger.error(f"Insert Error: {e}")
+
+    def insert_into_typing_results(self, df:pd.DataFrame):
+        columns = ', '.join(df.columns)
+        placeholder = ', '.join('?'*len(df.columns))
+
+        sql_insert = f"""INSERT INTO typing_results ({columns}) VALUES ({placeholder})"""
+
+        try:
+            for index, row in df.iterrows():
+                self.cursor.execute(sql_insert, tuple(row))
+                self.conn.commit()
+                logger.info("Successfully inserted typing result")
+        except pyodbc.Error as e:
+            self.conn.rollback()
+            logger.info(f"Failed to insert typing result. Error: {e}")
+
+    def delete_menaip(self, id):
+        sql_delete = f"""
+            DELETE typing_results
+            WHERE id = ?
+        """
+
+        try:
+            self.cursor.execute(sql_delete, id)
+            self.conn.commit()
+            logger.info(f"Results successfully deleted, id: {id}")
+        except pyodbc.Error as e:
+            self.conn.rollback()
+            logger.warning(f"Results failed to delete, id: {id}")
 
     def insert_into_peperiksaan(self, df:pd.DataFrame):
         columns = ', '.join(df.columns)

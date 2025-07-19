@@ -1,11 +1,17 @@
 import logging
-
+import os
+import random
 import pyodbc
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pandas as pd
 from datetime import datetime
 from OffSprings_DB import sql_offsprings
 from dateutil.relativedelta import relativedelta
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -384,10 +390,32 @@ def delete_persekolahan(id):
 
 @app.route('/peperiksaan', methods=['GET', 'POST'])
 def peperiksaan():
+    cari = []
     with sql_offsprings() as db:
+        if request.method == "POST":
+            full_name = request.form['nama']
+            kelas = request.form['kelas']
+
+            cari_sql = f"""
+                    SELECT a.id_peperiksaan, e.full_name, f.nama_kelas, g.nama_sekolah, a.nama_peperiksaan, a.tarikh_peperiksaan
+                    FROM peperiksaan a
+                    LEFT JOIN persekolahan d
+                    ON a.id_persekolahan = d.id_persekolahan
+                    LEFT JOIN person e
+                    ON d.id_person = e.id_person
+                    LEFT JOIN kelas f
+                    ON d.id_kelas = f.id_kelas
+                    LEFT JOIN sekolah g
+                    ON f.id_sekolah = g.id_sekolah
+                    WHERE e.full_name like '%{full_name}%'
+                    AND f.nama_kelas = '{kelas}'
+            """
+            df_cari = db.query_data(cari_sql)
+            cari = df_cari.to_dict(orient='records')
+
         sql_data_peperiksaan = f"""
-                    select a.id_peperiksaan, e.full_name, f.nama_kelas, g.nama_sekolah, a.nama_peperiksaan, a.tarikh_peperiksaan
-                    from peperiksaan a
+                    SELECT a.id_peperiksaan, e.full_name, f.nama_kelas, g.nama_sekolah, a.nama_peperiksaan, a.tarikh_peperiksaan
+                    FROM peperiksaan a
                     LEFT JOIN persekolahan d
                     ON a.id_persekolahan = d.id_persekolahan
                     LEFT JOIN person e
@@ -399,7 +427,9 @@ def peperiksaan():
                 """
         data_peperiksaan = db.query_data(sql_data_peperiksaan)
 
-        return render_template('peperiksaan.html', data_peperiksaan=data_peperiksaan.to_dict(orient="records"))
+        return render_template('peperiksaan.html',
+                               data_peperiksaan=data_peperiksaan.to_dict(orient="records"),
+                               cari=cari)
 
 @app.route('/add_subject', methods=['GET', 'POST'])
 def add_subject():
@@ -537,6 +567,7 @@ def view_results(id_peperiksaan):
                 GROUP BY id_peperiksaan, nama_peperiksaan
             """
         performance_df = db.query_data(performance_query)
+
         performance = performance_df.to_dict(orient="records")
         analisa_query = f"""
                 SELECT *
@@ -545,6 +576,7 @@ def view_results(id_peperiksaan):
                 """
         analisa_df = db.query_data(analisa_query)
         analisa = analisa_df.to_dict(orient="records")
+
         sql_keputusan_peperiksaan = f"""
             SELECT * FROM vw_keputusan_peperiksaan
             WHERE id_peperiksaan = {id_peperiksaan} 
@@ -603,7 +635,7 @@ def daftar_subjek(id_peperiksaan):
         if registered_subject_list.empty:
             flash("Tiada subjek didaftarkan.", "info")
             registered_subject_list = []
-            print(registered_subject_list)
+
 
 
         return render_template("daftar_subjek.html",
@@ -680,7 +712,7 @@ def edit_exam_results(id_peperiksaan, id_keputusan_peperiksaan):
 @app.route('/delete_exam_result/<int:id_peperiksaan>/<int:id_keputusan_peperiksaan>', methods=["GET", "POST"])
 def delete_exam_result(id_peperiksaan, id_keputusan_peperiksaan):
     with sql_offsprings() as db:
-        print(id_peperiksaan,id_keputusan_peperiksaan)
+
         if request.method == "POST":
             try:
                 deleted = db.delete_exam_result(id_peperiksaan, id_keputusan_peperiksaan)
@@ -858,6 +890,93 @@ def edit_jadual(id_jadual, id_peperiksaan):
 
         return render_template('edit_jadual.html',
                                details=details)
+@app.route("/typing_test", methods=['GET', 'POST'])
+def typing_test():
+    with sql_offsprings() as db:
+        directory = 'static/artikel'
+        txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
+
+        contents = []
+        for txt_file in txt_files:
+            filepath = os.path.join(directory, txt_file)
+            with open(filepath, 'r', encoding='utf-8') as file:
+                content = file.read()
+                contents.append(content)
+
+        articles = [{'article': f, 'content': c} for f, c in zip(txt_files, contents)]
+        selected_filename = request.args.get('article') or (articles[0]['article'] if articles else '')
+        selected_article = next((a for a in articles if a['article'] == selected_filename), articles[0])
+
+        sql_person = "SELECT id_person, full_name FROM person"
+        df_person = db.query_data(sql_person)
+
+        if request.method == 'POST':
+            data = {
+                'id_person': request.form['id_person'].strip(),
+                'wpm': request.form['wpm'].strip(),
+                'accuracy': request.form['accuracy'].strip(),
+                'duration': request.form['duration'].strip(),
+                'articles': request.form['article']
+            }
+            df_data = pd.DataFrame([data])
+
+            try:
+                db.insert_into_typing_results(df=df_data)
+                logger.info("Typing test result inserted.")
+            except Exception as e:
+                logger.error(f"Failed to insert the results, error: {e}")
+
+            # Force reload with selected article after POST
+            return redirect(url_for('typing_test', article=request.form['article']))
+
+        return render_template("typing_test.html",
+                               articles=articles,
+                               article=selected_article,
+                               person=df_person.to_dict(orient='records'))
+
+
+@app.route('/keputusan_menaip', methods=['GET', 'POST'])
+def keputusan_menaip():
+    with sql_offsprings() as db:
+        sql_menaip = """SELECT p.full_name, k.*
+                        FROM typing_results k
+                        LEFT JOIN person p
+                        ON p.id_person = k.id_person 
+                    """
+
+        df_menaip = db.query_data(sql_menaip)
+        df_menaip = df_menaip.sort_values('full_name')
+
+        df_percubaan = df_menaip.groupby('full_name').agg({
+            'wpm': 'mean',
+            'accuracy': 'mean',
+            'duration': 'mean',
+            'articles': 'nunique',
+            'timestamp': 'count'
+        }).reset_index()
+
+        df_percubaan.rename(columns={
+            'wpm': 'purata_wpm',
+            'accuracy': 'purata_accuracy',
+            'duration': 'purata_duration_saat',
+            'articles': 'jumlah_artikel_dicuba',
+            'timestamp': 'bilangan_percubaan'
+        }, inplace=True)
+
+    return render_template('keputusan_menaip.html',
+                           details=df_menaip.to_dict(orient='records'),
+                           percubaan = df_percubaan.to_dict(orient='records'))
+
+@app.route('/delete_result_menaip/<int:id>', methods=['POST'])
+def delete_result_menaip(id):
+    with sql_offsprings() as db:
+       try:
+           db.delete_menaip(id)
+           flash("Berjaya memadam keputusan menaip.")
+           return redirect(url_for('keputusan_menaip'))
+       except Exception as e:
+           flash("Gagal memadam keputusan peperiksaan.")
+           return redirect(url_for('keputusan_menaip'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

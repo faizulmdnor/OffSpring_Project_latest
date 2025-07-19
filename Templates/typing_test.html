@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block title %}Latihan Menaip{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4"><i class="fas fa-keyboard"></i> Latihan & Ujian Menaip</h2>
+  <div class="mb-3">
+    <!-- Pilih teks -->
+    <form method="GET" id="article-form" class="mb-3">
+      <label for="article"><strong>Pilih teks:</strong></label>
+      <select class="form-control" name="article" id="article-select" onchange="document.getElementById('article-form').submit()">
+        <option value="">-- Sila pilih --</option>
+        {% for t in articles %}
+        <option value="{{ t.article }}" {% if t.article == selected_article %}selected{% endif %}>
+          {{ t.article }}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
+
+    <!-- Petikan untuk ditaip -->
+    <p><strong>{{ article.article }}</strong></p>
+    <div id="quote-display" class="p-3 border rounded bg-light mb-3" style="font-size: 1.2rem;">
+      {{ article.content }}
+    </div>
+  </div>
+
+  <!-- Kawasan menaip -->
+  <textarea id="quote-input" class="form-control mb-3" rows="8" placeholder="Mula menaip di sini..."></textarea>
+
+  <!-- Statistik -->
+  <div class="row text-center mb-3">
+    <div class="col">
+      <strong>Masa:</strong> <span id="timer">0</span> saat
+    </div>
+    <div class="col">
+      <strong>Kelajuan:</strong> <span id="wpm">0</span> WPM
+    </div>
+    <div class="col">
+      <strong>Ketepatan:</strong> <span id="accuracy">0</span>%
+    </div>
+  </div>
+
+  <!-- Borang hantar -->
+  <form method="POST" id="typing-form">
+    <!-- Pilih Nama -->
+    <div class="mb-3">
+      <label for="id_person"><strong>Nama Pelajar:</strong></label>
+      <select class="form-control" name="id_person" id="id_person" required>
+        {% for p in person %}
+          <option value="{{ p.id_person }}">{{ p.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Input tersembunyi -->
+    <input type="hidden" name="article" value="{{ article.article }}">
+    <input type="hidden" name="wpm" id="wpm-field">
+    <input type="hidden" name="accuracy" id="accuracy-field">
+    <input type="hidden" name="duration" id="duration-field">
+
+    <!-- Butang submit -->
+    <div class="text-center">
+      <button type="button" onclick="confirmSubmit()" class="btn btn-success">
+        <i class="fas fa-paper-plane"></i> Hantar Keputusan
+      </button>
+    </div>
+  </form>
+
+  <!-- Butang mula semula -->
+  <div class="text-center mt-3">
+    <button onclick="resetGame()" class="btn btn-primary">
+      <i class="fas fa-redo"></i> Mula Semula
+    </button>
+    <a href="{{ url_for('keputusan_menaip') }}" class="btn btn-primary"><i class="fas fa-clipboard-list"> </i> Senarai keputusan menaip</a>
+  </div>
+</div>
+
+<!-- Pautan ke JS -->
+<script src="{{ url_for('static', filename='js/typing_test.js') }}"></script>
+
+<script>
+// Nilai global
+let startTime;
+let isRunning = false;
+
+function resetGame() {
+  document.getElementById("quote-input").value = "";
+  document.getElementById("timer").innerText = "0";
+  document.getElementById("wpm").innerText = "0";
+  document.getElementById("accuracy").innerText = "0";
+  isRunning = false;
+}
+
+// Kirakan & hantar
+function submitResults() {
+  const inputText = document.getElementById("quote-input").value.trim();
+  const referenceText = `{{ article.content | replace('\n', ' ') }}`.trim();
+
+  const wordsTyped = inputText.split(/\s+/).length;
+  const totalTimeSec = parseInt(document.getElementById("timer").innerText);
+  const wpm = totalTimeSec > 0 ? Math.round((wordsTyped / totalTimeSec) * 60) : 0;
+
+  // Kira ketepatan
+  const totalChars = referenceText.length;
+  let correctChars = 0;
+  for (let i = 0; i < inputText.length && i < totalChars; i++) {
+    if (inputText[i] === referenceText[i]) correctChars++;
+  }
+  const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 0;
+
+  // Set ke hidden field
+  document.getElementById("wpm-field").value = wpm;
+  document.getElementById("accuracy-field").value = accuracy;
+  document.getElementById("duration-field").value = totalTimeSec;
+
+  // Submit form
+  document.getElementById("typing-form").submit();
+}
+
+// Timer
+const input = document.getElementById("quote-input");
+input.addEventListener("input", function () {
+  if (!isRunning) {
+    isRunning = true;
+    startTime = new Date();
+
+    const timerInterval = setInterval(() => {
+      const elapsed = Math.floor((new Date() - startTime) / 1000);
+      document.getElementById("timer").innerText = elapsed;
+      if (!isRunning) clearInterval(timerInterval);
+    }, 1000);
+  }
+});
+
+// Sekat paste
+input.addEventListener("paste", function (e) {
+  e.preventDefault();
+  alert("Menampal teks tidak dibenarkan. Sila taip sendiri.");
+  console.warn("Percubaan menampal dikesan.");
+});
+
+// Sekat klik kanan
+input.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+  alert("Klik kanan tidak dibenarkan di kawasan menaip.");
+  console.warn("Percubaan klik kanan dikesan.");
+});
+
+// Sekat Ctrl+V (shortcut tampal)
+document.addEventListener("keydown", function(e) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault();
+    alert("Menampal tidak dibenarkan.");
+  }
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block title %}Keputusan menaip{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="card shadow-sm border-left-primary">
+            <div class="card-body">
+                <h2 class="card-title text-primary"><i class="fas fa-clipboard-list"> </i> Keputusan keseluruhan.</h2>
+                <table class="table table-bordered table-striped mt-3">
+                    <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Average - Words Per Minute</th>
+                        <th>Average - Duration(Minutes)</th>
+                        <th>Average - Accuracy (%)</th>
+                        <th>Bilangan Percubaan</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in percubaan %}
+                    <tr>
+                        <td>{{ p.full_name }}</td>
+                        <td>{{ p.purata_wpm }}</td>
+                        <td>
+                            {{ p.purata_duration_saat // 60 }}
+                        </td>
+                        <td>{{ p.purata_accuracy }}</td>
+                        <td>{{ p.bilangan_percubaan }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="container">
+    <div class="row">
+        <div class="card shadow-sm border-left-primary">
+            <div class="card-body">
+                <h2 class="card-title text-primary"><i class="fas fa-clipboard-list"> </i> Senarai keputusan.</h2>
+                <table class="table table-bordered table-striped mt-3">
+                    <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>Nama</th>
+                        <th>Artikel</th>
+                        <th>Words Per Minute</th>
+                        <th>Duration(Minutes)</th>
+                        <th>Accuracy(%)</th>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for d in details %}
+                    <tr>
+                        <td>{{ d.id }}</td>
+                        <td>{{ d.full_name }}</td>
+                        <td>{{ d.articles }}</td>
+                        <td>{{ d.wpm }}</td>
+                        <td>
+                            {{ d.duration // 60 }}:{{ "%02d"|format(d.duration % 60) }}
+                        </td>
+                        <td>{{ d.accuracy }}</td>
+                        <td>{{ d.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_result_menaip', id=d.id) }}" onsubmit="return confirm('Padam keputusan ini?');" style="display:inline;">
+                                <button type="submit" class="btn btn-warning btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+
+
+{% endblock %}

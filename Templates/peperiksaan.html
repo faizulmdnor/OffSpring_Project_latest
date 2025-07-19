@@ -1,55 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Peperiksaan</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
 {% extends "layout.html" %}
 
-{% block title %}Job Logs{% endblock %}
+{% block title %}Peperiksaan{% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
-    <h2>Senarai Peperiksaan</h2>
-    <a href="{{ url_for('add_peperiksaan') }}" class="btn btn-primary mt-2">Tambah Peperiksaan</a>
-</div>
-<div class="container mt-4">
-    <table class="table table-bordered table-striped">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>Tarikh</th>
-            <th>Nama peperiksaan</th>
-            <th>Nama</th>
-            <th>Kelas</th>
-            <th>Daftar Subjek</th>
-            <th>Keputusan</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for peperiksaan in data_peperiksaan %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ peperiksaan.tarikh_peperiksaan }}</td>
-            <td>{{ peperiksaan.nama_peperiksaan }}</td>
-            <td>{{ peperiksaan.full_name }}</td>
-            <td>{{ peperiksaan.nama_kelas }}</td>
-            <td>
-                <a href="{{ url_for('daftar_subjek', id_peperiksaan=peperiksaan.id_peperiksaan)}}" class="btn btn-secondary">Daftar subjek</a>
-            </td>
-            <td>
-                <a href="{{ url_for('view_results', id_peperiksaan=peperiksaan.id_peperiksaan )}}" class="btn btn-secondary">View</a>
-            </td>
+    <h2 class="text-primary mb-4">Peperiksaan</h2>
 
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <!-- Carian Peperiksaan -->
+    <form class="mt-3" method="POST">
+        <div class="card shadow-sm bg-light border-left-primary mb-4">
+            <div class="card-body">
+                <h5 class="card-title text-primary">Carian Peperiksaan</h5>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="filterNama">Nama Murid</label>
+                        <select id="filterNama" name="nama" class="form-control" required>
+                            <option value="">-- Sila pilih --</option>
+                            {% for nama in data_peperiksaan | map(attribute='full_name') | unique %}
+                            <option value="{{ nama }}">{{ nama }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterKelas">Kelas</label>
+                        <select id="filterKelas" name="kelas" class="form-control" required>
+                            <option value="">-- Sila pilih --</option>
+                            {% for kelas in data_peperiksaan | map(attribute='nama_kelas') | unique %}
+                            <option value="{{ kelas }}">{{ kelas }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Cari</button>
+            </div>
+        </div>
+    </form>
 
+    <!-- Hasil Carian -->
+    {% if cari and cari|length > 0 %}
+    <div class="card shadow-sm bg-light border-left-primary mb-4">
+        <div class="card-body">
+            <h5 class="card-title text-primary">Hasil Carian</h5>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tarikh</th>
+                        <th>Nama Peperiksaan</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Daftar Subjek</th>
+                        <th>Keputusan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in cari %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ row.tarikh_peperiksaan }}</td>
+                        <td>{{ row.nama_peperiksaan }}</td>
+                        <td>{{ row.full_name }}</td>
+                        <td>{{ row.nama_kelas }}</td>
+                        <td>
+                            <a href="{{ url_for('daftar_subjek', id_peperiksaan=row.id_peperiksaan) }}" class="btn btn-secondary">Daftar Subjek</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_results', id_peperiksaan=row.id_peperiksaan) }}" class="btn btn-secondary">Lihat</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% elif cari is defined %}
+    <div class="alert alert-info">Tiada peperiksaan dijumpai untuk carian ini.</div>
+    {% endif %}
+
+    <!-- Tambah Peperiksaan -->
+    <div class="card shadow-sm bg-light border-left-primary mb-4">
+        <div class="card-body">
+            <h5 class="card-title text-primary">Tambah Peperiksaan</h5>
+            <a href="{{ url_for('add_peperiksaan') }}" class="btn btn-primary mt-2">Tambah Peperiksaan</a>
+        </div>
+    </div>
+
+    <!-- Senarai Semua Peperiksaan -->
+    <div class="card shadow-sm bg-light border-left-primary mb-4">
+        <div class="card-body">
+            <h5 class="card-title text-primary">Senarai Semua Peperiksaan</h5>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tarikh</th>
+                        <th>Nama Peperiksaan</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Daftar Subjek</th>
+                        <th>Keputusan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for peperiksaan in data_peperiksaan %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ peperiksaan.tarikh_peperiksaan }}</td>
+                        <td>{{ peperiksaan.nama_peperiksaan }}</td>
+                        <td>{{ peperiksaan.full_name }}</td>
+                        <td>{{ peperiksaan.nama_kelas }}</td>
+                        <td>
+                            <a href="{{ url_for('daftar_subjek', id_peperiksaan=peperiksaan.id_peperiksaan) }}" class="btn btn-secondary">Daftar Subjek</a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_results', id_peperiksaan=peperiksaan.id_peperiksaan) }}" class="btn btn-secondary">Lihat</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}
-</body>
-</html>

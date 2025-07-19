@@ -142,16 +142,6 @@ You can adjust the SQL logic in `OffSprings_DB.py` if your schema is different.
 
 ---
 
-## 📌 TODO / Future Improvements
-
-- [ ] Add authentication and roles (Admin, Teacher, Student)
-- [ ] REST API endpoints for external access
-- [ ] Responsive layout (Bootstrap or Tailwind)
-- [ ] Export to Excel / PDF for results and reports
-- [ ] Dockerize the app for production use
-
----
-
 ## 📧 Contact
 
 Created by [Faizul Md Nor](https://github.com/faizulmdnor)  

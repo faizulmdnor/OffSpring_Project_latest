@@ -103,7 +103,7 @@ Ensure the required views and tables (e.g. `vw_offsprings_details`, `vw_peperiks
 ### 5. Run the app
 
 ```bash
-python app.py
+python offsprings.py
 ```
 
 Visit [http://localhost:5000](http://localhost:5000) in your browser.
